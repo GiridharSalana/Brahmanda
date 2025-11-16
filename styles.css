@@ -101,12 +101,98 @@ body::before {
     height: 100%;
     background: linear-gradient(90deg, #FFD700, #FF6B35);
     animation: loading 2s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 @keyframes loading {
     0% { width: 0%; }
     50% { width: 70%; }
     100% { width: 100%; }
+}
+
+/* Enhanced level indicator */
+.level-indicator {
+    animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Enhanced detail panel */
+.detail-panel {
+    animation: slideInRight 0.4s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        right: -500px;
+    }
+    to {
+        right: 0;
+    }
+}
+
+/* Tooltip styles */
+.tooltip {
+    position: absolute;
+    background: rgba(26, 26, 46, 0.95);
+    color: var(--text-light);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 10000;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip.visible {
+    opacity: 1;
+}
+
+/* Enhanced buttons */
+.nav-links button {
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-links button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 215, 0, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.nav-links button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Smooth transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+/* Performance hint */
+canvas {
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 /* Navbar */
@@ -225,6 +311,14 @@ body::before {
 .level-desc {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.7);
+    margin-top: 5px;
+}
+
+.level-hint {
+    font-size: 12px;
+    color: rgba(139, 92, 246, 0.8);
+    margin-top: 8px;
+    font-style: italic;
 }
 
 /* Detail Panel */

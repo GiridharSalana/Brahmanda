@@ -434,6 +434,9 @@ function init() {
             console.warn('Some enhanced features failed to load:', error);
         }
         
+        // Add performance optimizations
+        optimizePerformance();
+        
         // Setup controls
         setupControls();
         
@@ -447,6 +450,10 @@ function init() {
         
         // Create minimap
         createMinimap();
+        
+        // Setup additional features
+        setupLokaZoom();
+        addVisualFeedback();
         
         // Start animation
         animate();
@@ -1260,17 +1267,64 @@ function setupControls() {
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / (window.innerHeight - 70)) * 2 + 1;
             
-            // Check for sphere intersection - only check main spheres
+            // Check for sphere intersection - check all interactive objects
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(spheres, false);
+            const allObjects = [...spheres, ...lokaSpheres, ...shaktiEnergies, ...scriptures];
+            if (trimurtiGroup) allObjects.push(...trimurtiGroup.children);
+            
+            const intersects = raycaster.intersectObjects(allObjects, false);
             
             if (intersects.length > 0) {
-                const sphere = intersects[0].object;
+                const object = intersects[0].object;
                 
-                // Make sure it's a main sphere with userData
-                if (sphere.userData && sphere.userData.name) {
-                    selectedSphere = sphere;
-                    showDetailPanel(sphere.userData);
+                // Handle Loka zoom
+                if (object.userData && object.userData.type === 'loka') {
+                    if (object.userData.isZoomed) {
+                        // Zoom out
+                        smoothCameraTransition(
+                            new THREE.Vector3(0, 20, 70),
+                            new THREE.Vector3(0, 15, 0)
+                        );
+                        object.userData.isZoomed = false;
+                    } else {
+                        // Zoom in
+                        const targetPos = object.position.clone().add(new THREE.Vector3(0, 0, 20));
+                        smoothCameraTransition(targetPos, object.position);
+                        object.userData.isZoomed = true;
+                    }
+                }
+                // Handle main spheres
+                else if (object.userData && object.userData.name && object.userData.id) {
+                    selectedSphere = object;
+                    showDetailPanel(object.userData);
+                    
+                    // Smooth camera transition to sphere
+                    const targetPos = object.position.clone().add(new THREE.Vector3(0, 0, 15));
+                    smoothCameraTransition(targetPos, object.position);
+                }
+                // Handle Trimurti
+                else if (object.userData && object.userData.type === 'trimurti') {
+                    const detailContent = {
+                        title: object.userData.name + ' - Trimurti',
+                        content: `<p>${object.userData.name} is one of the three primary deities of Hinduism.</p>`
+                    };
+                    showDetailPanel(detailContent);
+                }
+                // Handle Shakti
+                else if (object.userData && object.userData.type === 'shakti') {
+                    const detailContent = {
+                        title: object.userData.name + ' - Shakti',
+                        content: `<p>${object.userData.name} represents divine feminine energy.</p>`
+                    };
+                    showDetailPanel(detailContent);
+                }
+                // Handle Scriptures
+                else if (object.userData && object.userData.type === 'scripture') {
+                    const detailContent = {
+                        title: object.userData.name,
+                        content: `<p>${object.userData.name} is a sacred text of Sanatan Dharma.</p>`
+                    };
+                    showDetailPanel(detailContent);
                 }
             }
         }
@@ -1466,34 +1520,54 @@ function onMouseMove(event) {
     // Update raycaster
     raycaster.setFromCamera(mouse, camera);
     
-    // Check for intersections - only check main spheres, not children
-    const intersects = raycaster.intersectObjects(spheres, false);
+    // Check for intersections - check all interactive objects
+    const allObjects = [...spheres, ...lokaSpheres, ...shaktiEnergies, ...scriptures];
+    if (trimurtiGroup) allObjects.push(...trimurtiGroup.children);
+    
+    const intersects = raycaster.intersectObjects(allObjects, false);
     
     if (intersects.length > 0) {
         const object = intersects[0].object;
         
-        // Make sure it's a main sphere, not a child
-        if (object.userData && object.userData.name) {
+        // Make sure it's an interactive object
+        if (object.userData && (object.userData.name || object.userData.type)) {
             if (INTERSECTED !== object) {
                 // Restore previous object
-                if (INTERSECTED) {
+                if (INTERSECTED && INTERSECTED.material) {
                     INTERSECTED.material.emissiveIntensity = 0.4;
                 }
                 
                 INTERSECTED = object;
-                INTERSECTED.material.emissiveIntensity = 0.8;
+                if (INTERSECTED.material) {
+                    INTERSECTED.material.emissiveIntensity = 0.8;
+                }
                 
                 // Update level indicator
                 const levelName = document.querySelector('.level-name');
                 const levelDesc = document.querySelector('.level-desc');
-                if (levelName) levelName.textContent = object.userData.name;
-                if (levelDesc) levelDesc.textContent = object.userData.subtitle;
+                const tooltip = document.getElementById('tooltip');
+                
+                if (object.userData.name) {
+                    if (levelName) levelName.textContent = object.userData.name;
+                    if (levelDesc) {
+                        levelDesc.textContent = object.userData.subtitle || 
+                            (object.userData.type === 'loka' ? 'Click to zoom in' : 'Click to explore');
+                    }
+                    
+                    // Show tooltip
+                    if (tooltip) {
+                        tooltip.textContent = object.userData.name;
+                        tooltip.style.left = event.clientX + 10 + 'px';
+                        tooltip.style.top = event.clientY + 10 + 'px';
+                        tooltip.classList.add('visible');
+                    }
+                }
                 
                 renderer.domElement.style.cursor = 'pointer';
             }
         }
     } else {
-        if (INTERSECTED) {
+        if (INTERSECTED && INTERSECTED.material) {
             INTERSECTED.material.emissiveIntensity = 0.4;
         }
         INTERSECTED = null;
@@ -1501,8 +1575,11 @@ function onMouseMove(event) {
         
         const levelName = document.querySelector('.level-name');
         const levelDesc = document.querySelector('.level-desc');
+        const tooltip = document.getElementById('tooltip');
+        
         if (levelName) levelName.textContent = 'Exploring the Cosmos';
         if (levelDesc) levelDesc.textContent = 'Click on any sphere to explore';
+        if (tooltip) tooltip.classList.remove('visible');
     }
 }
 
@@ -1731,6 +1808,74 @@ function startApp() {
             init();
         }, 1000);
     }
+}
+
+// Performance optimization
+function optimizePerformance() {
+    // Reduce quality on mobile devices
+    if (window.innerWidth < 768) {
+        renderer.setPixelRatio(1);
+        // Reduce particle counts
+        if (particleSystems) {
+            particleSystems.forEach(particles => {
+                particles.forEach(particle => {
+                    if (particle.geometry) {
+                        particle.geometry.dispose();
+                        const lowGeo = new THREE.SphereGeometry(0.1, 8, 8);
+                        particle.geometry = lowGeo;
+                    }
+                });
+            });
+        }
+    }
+    
+    // Enable frustum culling
+    renderer.sortObjects = false;
+    
+    // Optimize shadows
+    if (renderer.shadowMap) {
+        renderer.shadowMap.autoUpdate = false;
+    }
+}
+
+// Smooth camera transitions
+function smoothCameraTransition(targetPosition, targetLookAt, duration = 2000) {
+    const startPosition = camera.position.clone();
+    const startLookAt = new THREE.Vector3(0, 15, 0);
+    const startTime = Date.now();
+    
+    function update() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+        
+        camera.position.lerpVectors(startPosition, targetPosition, easeProgress);
+        const currentLookAt = startLookAt.clone().lerp(targetLookAt, easeProgress);
+        camera.lookAt(currentLookAt);
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    
+    update();
+}
+
+// Add click-to-zoom functionality for Lokas
+function setupLokaZoom() {
+    lokaSpheres.forEach((loka, index) => {
+        loka.userData.originalPosition = loka.position.clone();
+        loka.userData.isZoomed = false;
+    });
+}
+
+// Enhanced visual feedback
+function addVisualFeedback() {
+    // Add subtle pulse to all spheres
+    spheres.forEach((sphere, index) => {
+        const originalScale = sphere.scale.clone();
+        sphere.userData.originalScale = originalScale;
+    });
 }
 
 // Start the app
