@@ -1286,14 +1286,8 @@ function setupControls() {
         // Only trigger click if mouse didn't move much (wasn't dragging)
         if (!hasMoved && mouseDownPosition) {
             // Update mouse position for raycasting
-            const navbar = document.querySelector('.navbar');
-            const controlsPanel = document.querySelector('.controls-panel');
-            const navbarHeight = navbar ? navbar.offsetHeight : 70;
-            const controlsHeight = controlsPanel ? controlsPanel.offsetHeight : 70;
-            const totalHeight = navbarHeight + controlsHeight;
-            
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / (window.innerHeight - totalHeight)) * 2 + 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
             
             // Check for sphere intersection - prioritize main spheres first
             raycaster.setFromCamera(mouse, camera);
@@ -1573,14 +1567,8 @@ function onMouseMove(event) {
     if (!raycaster || !camera || isDragging) return;
     
     // Calculate mouse position in normalized device coordinates
-    const navbar = document.querySelector('.navbar');
-    const controlsPanel = document.querySelector('.controls-panel');
-    const navbarHeight = navbar ? navbar.offsetHeight : 70;
-    const controlsHeight = controlsPanel ? controlsPanel.offsetHeight : 70;
-    const totalHeight = navbarHeight + controlsHeight;
-    
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / (window.innerHeight - totalHeight)) * 2 + 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     
     // Update raycaster
     raycaster.setFromCamera(mouse, camera);
@@ -1658,23 +1646,9 @@ function showDetailPanel(levelData) {
 function onWindowResize() {
     if (!camera || !renderer) return;
     
-    // Calculate combined height of navbar and controls
-    const navbar = document.querySelector('.navbar');
-    const controlsPanel = document.querySelector('.controls-panel');
-    const navbarHeight = navbar ? navbar.offsetHeight : 70;
-    const controlsHeight = controlsPanel ? controlsPanel.offsetHeight : 70;
-    const totalHeight = navbarHeight + controlsHeight;
-    
-    camera.aspect = window.innerWidth / (window.innerHeight - totalHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight - totalHeight);
-    
-    // Update canvas container height
-    const canvasContainer = document.getElementById('canvas-container');
-    if (canvasContainer) {
-        canvasContainer.style.height = `calc(100vh - ${totalHeight}px)`;
-        canvasContainer.style.top = `${navbarHeight}px`;
-    }
+    renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 // Handle keyboard
@@ -1695,21 +1669,22 @@ function onKeyDown(event) {
 
 // Setup UI controls
 function setupUIControls() {
-    // Mobile menu toggle for controls panel
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const controlsLinks = document.getElementById('controls-links');
+    // Circular orb toggle
+    const orbToggle = document.getElementById('orb-toggle');
+    const controlRing = document.getElementById('control-ring');
     
-    if (mobileMenuToggle && controlsLinks) {
-        mobileMenuToggle.addEventListener('click', () => {
-            mobileMenuToggle.classList.toggle('active');
-            controlsLinks.classList.toggle('active');
+    if (orbToggle && controlRing) {
+        orbToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            orbToggle.classList.toggle('active');
+            controlRing.classList.toggle('active');
         });
         
-        // Close menu when clicking outside
+        // Close ring when clicking outside
         document.addEventListener('click', (e) => {
-            if (!mobileMenuToggle.contains(e.target) && !controlsLinks.contains(e.target)) {
-                mobileMenuToggle.classList.remove('active');
-                controlsLinks.classList.remove('active');
+            if (!orbToggle.contains(e.target) && !controlRing.contains(e.target)) {
+                orbToggle.classList.remove('active');
+                controlRing.classList.remove('active');
             }
         });
     }
@@ -1769,11 +1744,11 @@ function setupUIControls() {
         });
     }
     
-    // Function to close mobile menu
-    const closeMobileMenu = () => {
-        if (mobileMenuToggle && navLinks) {
-            mobileMenuToggle.classList.remove('active');
-            navLinks.classList.remove('active');
+    // Function to close control ring
+    const closeControlRing = () => {
+        if (orbToggle && controlRing) {
+            orbToggle.classList.remove('active');
+            controlRing.classList.remove('active');
         }
     };
     
@@ -1784,7 +1759,7 @@ function setupUIControls() {
         if (yugaTimeline) {
             yugaTimeline.visible = toggleStates.yugas;
         }
-        closeMobileMenu();
+        closeControlRing();
     });
     
     document.querySelector('[data-action="toggle-lokas"]')?.addEventListener('click', function() {
@@ -1795,7 +1770,7 @@ function setupUIControls() {
                 if (loka) loka.visible = toggleStates.lokas;
             });
         }
-        closeMobileMenu();
+        closeControlRing();
     });
     
     document.querySelector('[data-action="toggle-avatars"]')?.addEventListener('click', function() {
@@ -1806,7 +1781,7 @@ function setupUIControls() {
                 if (avatar) avatar.visible = toggleStates.avatars;
             });
         }
-        closeMobileMenu();
+        closeControlRing();
     });
     
     document.querySelector('[data-action="toggle-paths"]')?.addEventListener('click', function() {
@@ -1824,16 +1799,12 @@ function setupUIControls() {
                 }
             });
         }
-        closeMobileMenu();
+        closeControlRing();
     });
     
-    // Close menu when clicking action buttons on mobile
+    // Close ring when clicking action buttons
     document.querySelectorAll('[data-action="reset"], [data-action="auto-rotate"], [data-action="expand"], [data-action="help"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                closeMobileMenu();
-            }
-        });
+        btn.addEventListener('click', closeControlRing);
     });
 }
 

@@ -19,20 +19,65 @@
         </div>
     </div>
 
-    <nav class="navbar">
-        <div class="nav-brand">
+    <!-- Centered Brand Header -->
+    <header class="brand-header">
+        <div class="brand-content">
             <span class="om">ॐ</span>
             <span class="title">SANATAN COSMOS</span>
         </div>
-    </nav>
+    </header>
 
-    <!-- Main 3D Canvas -->
+    <!-- Main 3D Canvas - Full Screen -->
     <div id="canvas-container"></div>
+    
+    <!-- Floating Circular Control Panel -->
+    <div class="control-orb">
+        <button class="orb-toggle" id="orb-toggle" aria-label="Toggle controls">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        </button>
+        
+        <div class="control-ring" id="control-ring">
+            <button class="control-btn" data-action="reset" title="Reset View">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                    <path d="M21 3v5h-5"/>
+                </svg>
+            </button>
+            
+            <button class="control-btn" data-action="auto-rotate" title="Auto Rotate">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                </svg>
+            </button>
+            
+            <button class="control-btn" data-action="expand" title="Expand All">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg>
+            </button>
+            
+            <button class="control-btn toggle-btn active" data-action="toggle-yugas" title="Yugas">Y</button>
+            <button class="control-btn toggle-btn active" data-action="toggle-lokas" title="Lokas">L</button>
+            <button class="control-btn toggle-btn active" data-action="toggle-avatars" title="Avatars">A</button>
+            <button class="control-btn toggle-btn active" data-action="toggle-paths" title="Paths">P</button>
+            
+            <button class="control-btn" data-action="help" title="Help">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </button>
+        </div>
+    </div>
     
     <!-- Tooltip -->
     <div class="tooltip" id="tooltip"></div>
 
-    <!-- Detail Panel (shown when clicking on nodes) -->
+    <!-- Detail Panel -->
     <div class="detail-panel" id="detail-panel">
         <button class="close-btn" id="close-detail">×</button>
         <div class="detail-content">
@@ -41,40 +86,29 @@
         </div>
     </div>
 
-    <!-- Instructions overlay -->
+    <!-- Instructions Overlay -->
     <div class="instructions" id="instructions">
         <div class="instruction-content">
             <h2>Welcome to Sanatan Cosmos</h2>
-            <p>🖱️ <strong>Left Click + Drag:</strong> Rotate view</p>
-            <p>🖱️ <strong>Scroll:</strong> Zoom in/out</p>
-            <p>👆 <strong>Click Sphere:</strong> View details</p>
-            <p>⌨️ <strong>Space:</strong> Toggle auto-rotate</p>
-            <button id="got-it">Begin Journey</button>
-        </div>
-    </div>
-
-    <!-- Controls Panel at Bottom -->
-    <div class="controls-panel">
-        <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle controls">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-        <div class="controls-links" id="controls-links">
-            <div class="controls-group">
-                <button data-action="reset">Reset</button>
-                <button data-action="auto-rotate">Rotate</button>
-                <button data-action="expand">Expand</button>
+            <div class="instruction-grid">
+                <div class="instruction-item">
+                    <div class="instruction-icon">🖱️</div>
+                    <p><strong>Drag</strong><br>Rotate view</p>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-icon">🔍</div>
+                    <p><strong>Scroll</strong><br>Zoom in/out</p>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-icon">👆</div>
+                    <p><strong>Click</strong><br>Explore details</p>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-icon">⌨️</div>
+                    <p><strong>Space</strong><br>Auto-rotate</p>
+                </div>
             </div>
-            <div class="controls-group toggles-group">
-                <button data-action="toggle-yugas" class="toggle-btn active" title="Toggle Yuga Timeline">Yugas</button>
-                <button data-action="toggle-lokas" class="toggle-btn active" title="Toggle Lokas">Lokas</button>
-                <button data-action="toggle-avatars" class="toggle-btn active" title="Toggle Avatars">Avatars</button>
-                <button data-action="toggle-paths" class="toggle-btn active" title="Toggle Moksha Paths">Paths</button>
-            </div>
-            <div class="controls-group">
-                <button data-action="help">Help</button>
-            </div>
+            <button id="got-it" class="begin-btn">Begin Journey</button>
         </div>
     </div>
 
