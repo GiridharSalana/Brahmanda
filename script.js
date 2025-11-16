@@ -607,10 +607,24 @@ function createTextLabel(sphere, name, subtitle) {
     });
     const sprite = new THREE.Sprite(spriteMaterial);
     sprite.scale.set(15, 7.5, 1);
-    sprite.position.y = sphere.userData.radius + 5;
-    sprite.raycast = function() {}; // Disable raycasting for sprite
     
-    sphere.add(sprite);
+    // Position sprite relative to sphere but add to scene, not as child
+    sprite.position.set(
+        sphere.position.x,
+        sphere.position.y + sphere.userData.radius + 5,
+        sphere.position.z
+    );
+    
+    // Completely disable raycasting for sprite
+    sprite.raycast = function() {};
+    sprite.material.raycast = function() {};
+    
+    // Store reference to parent sphere for position updates
+    sprite.userData.parentSphere = sphere;
+    sprite.userData.offsetY = sphere.userData.radius + 5;
+    
+    // Add to scene instead of as child to avoid raycasting interference
+    scene.add(sprite);
     textLabels.push(sprite);
 }
 
@@ -1267,15 +1281,33 @@ function setupControls() {
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / (window.innerHeight - 70)) * 2 + 1;
             
-            // Check for sphere intersection - check all interactive objects
+            // Check for sphere intersection - prioritize main spheres first
             raycaster.setFromCamera(mouse, camera);
-            const allObjects = [...spheres, ...lokaSpheres, ...shaktiEnergies, ...scriptures];
-            if (trimurtiGroup) allObjects.push(...trimurtiGroup.children);
             
-            const intersects = raycaster.intersectObjects(allObjects, false);
+            // First check main spheres (most important) - exclude children
+            let intersects = raycaster.intersectObjects(spheres, false);
+            let object = null;
+            
+            // Filter out any child objects (sprites, glows, etc.)
+            intersects = intersects.filter(intersect => {
+                // Make sure it's a direct sphere, not a child
+                return spheres.includes(intersect.object);
+            });
             
             if (intersects.length > 0) {
-                const object = intersects[0].object;
+                object = intersects[0].object;
+            } else {
+                // Then check other objects
+                const allObjects = [...lokaSpheres, ...shaktiEnergies, ...scriptures];
+                if (trimurtiGroup) allObjects.push(...trimurtiGroup.children);
+                
+                intersects = raycaster.intersectObjects(allObjects, false);
+                if (intersects.length > 0) {
+                    object = intersects[0].object;
+                }
+            }
+            
+            if (object) {
                 
                 // Handle Loka zoom
                 if (object.userData && object.userData.type === 'loka') {
@@ -1375,6 +1407,19 @@ function animate() {
         // Floating animation
         const originalY = sphere.userData.position.y;
         sphere.position.y = originalY + Math.sin(time + index) * 1.5;
+        
+        // Update text label positions to follow spheres
+        textLabels.forEach(label => {
+            if (label.userData && label.userData.parentSphere === sphere) {
+                label.position.set(
+                    sphere.position.x,
+                    sphere.position.y + label.userData.offsetY,
+                    sphere.position.z
+                );
+                // Make label face camera
+                label.lookAt(camera.position);
+            }
+        });
         
         // Pulse effect on hover
         if (sphere === INTERSECTED) {
@@ -1520,51 +1565,63 @@ function onMouseMove(event) {
     // Update raycaster
     raycaster.setFromCamera(mouse, camera);
     
-    // Check for intersections - check all interactive objects
-    const allObjects = [...spheres, ...lokaSpheres, ...shaktiEnergies, ...scriptures];
-    if (trimurtiGroup) allObjects.push(...trimurtiGroup.children);
+    // Prioritize main spheres first, then other objects
+    let intersects = raycaster.intersectObjects(spheres, false);
+    let object = null;
     
-    const intersects = raycaster.intersectObjects(allObjects, false);
+    // Filter out any child objects (sprites, glows, etc.)
+    intersects = intersects.filter(intersect => {
+        // Make sure it's a direct sphere, not a child
+        return spheres.includes(intersect.object);
+    });
     
     if (intersects.length > 0) {
-        const object = intersects[0].object;
+        object = intersects[0].object;
+    } else {
+        // Check other interactive objects
+        const allObjects = [...lokaSpheres, ...shaktiEnergies, ...scriptures];
+        if (trimurtiGroup) allObjects.push(...trimurtiGroup.children);
         
-        // Make sure it's an interactive object
-        if (object.userData && (object.userData.name || object.userData.type)) {
-            if (INTERSECTED !== object) {
-                // Restore previous object
-                if (INTERSECTED && INTERSECTED.material) {
-                    INTERSECTED.material.emissiveIntensity = 0.4;
-                }
-                
-                INTERSECTED = object;
-                if (INTERSECTED.material) {
-                    INTERSECTED.material.emissiveIntensity = 0.8;
-                }
-                
-                // Update level indicator
-                const levelName = document.querySelector('.level-name');
-                const levelDesc = document.querySelector('.level-desc');
-                const tooltip = document.getElementById('tooltip');
-                
-                if (object.userData.name) {
-                    if (levelName) levelName.textContent = object.userData.name;
-                    if (levelDesc) {
-                        levelDesc.textContent = object.userData.subtitle || 
-                            (object.userData.type === 'loka' ? 'Click to zoom in' : 'Click to explore');
-                    }
-                    
-                    // Show tooltip
-                    if (tooltip) {
-                        tooltip.textContent = object.userData.name;
-                        tooltip.style.left = event.clientX + 10 + 'px';
-                        tooltip.style.top = event.clientY + 10 + 'px';
-                        tooltip.classList.add('visible');
-                    }
-                }
-                
-                renderer.domElement.style.cursor = 'pointer';
+        intersects = raycaster.intersectObjects(allObjects, false);
+        if (intersects.length > 0) {
+            object = intersects[0].object;
+        }
+    }
+    
+    if (object && object.userData && (object.userData.name || object.userData.type)) {
+        if (INTERSECTED !== object) {
+            // Restore previous object
+            if (INTERSECTED && INTERSECTED.material) {
+                INTERSECTED.material.emissiveIntensity = 0.4;
             }
+            
+            INTERSECTED = object;
+            if (INTERSECTED.material) {
+                INTERSECTED.material.emissiveIntensity = 0.8;
+            }
+            
+            // Update level indicator
+            const levelName = document.querySelector('.level-name');
+            const levelDesc = document.querySelector('.level-desc');
+            const tooltip = document.getElementById('tooltip');
+            
+            if (object.userData.name) {
+                if (levelName) levelName.textContent = object.userData.name;
+                if (levelDesc) {
+                    levelDesc.textContent = object.userData.subtitle || 
+                        (object.userData.type === 'loka' ? 'Click to zoom in' : 'Click to explore');
+                }
+                
+                // Show tooltip
+                if (tooltip) {
+                    tooltip.textContent = object.userData.name;
+                    tooltip.style.left = event.clientX + 10 + 'px';
+                    tooltip.style.top = event.clientY + 10 + 'px';
+                    tooltip.classList.add('visible');
+                }
+            }
+            
+            renderer.domElement.style.cursor = 'pointer';
         }
     } else {
         if (INTERSECTED && INTERSECTED.material) {
