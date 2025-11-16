@@ -1598,9 +1598,20 @@ function showDetailPanel(levelData) {
 function onWindowResize() {
     if (!camera || !renderer) return;
     
-    camera.aspect = window.innerWidth / (window.innerHeight - 70);
+    // Calculate navbar height dynamically
+    const navbar = document.querySelector('.navbar');
+    const navbarHeight = navbar ? navbar.offsetHeight : 70;
+    
+    camera.aspect = window.innerWidth / (window.innerHeight - navbarHeight);
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight - 70);
+    renderer.setSize(window.innerWidth, window.innerHeight - navbarHeight);
+    
+    // Update canvas container height
+    const canvasContainer = document.getElementById('canvas-container');
+    if (canvasContainer) {
+        canvasContainer.style.height = `calc(100vh - ${navbarHeight}px)`;
+        canvasContainer.style.top = `${navbarHeight}px`;
+    }
 }
 
 // Handle keyboard
@@ -1621,6 +1632,25 @@ function onKeyDown(event) {
 
 // Setup UI controls
 function setupUIControls() {
+    // Mobile menu toggle
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const navLinks = document.getElementById('nav-links');
+    
+    if (mobileMenuToggle && navLinks) {
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenuToggle.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!mobileMenuToggle.contains(e.target) && !navLinks.contains(e.target)) {
+                mobileMenuToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+            }
+        });
+    }
+    
     // Instructions
     const gotItBtn = document.getElementById('got-it');
     if (gotItBtn) {

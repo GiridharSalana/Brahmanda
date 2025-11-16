@@ -24,15 +24,26 @@
             <span class="om">ॐ</span>
             <span class="title">SANATAN COSMOS</span>
         </div>
-        <div class="nav-links">
-            <button data-action="reset">Reset View</button>
-            <button data-action="auto-rotate">Auto Rotate</button>
-            <button data-action="expand">Expand All</button>
-            <button data-action="toggle-yugas" class="toggle-btn active">Yugas</button>
-            <button data-action="toggle-lokas" class="toggle-btn active">Lokas</button>
-            <button data-action="toggle-avatars" class="toggle-btn active">Avatars</button>
-            <button data-action="toggle-paths" class="toggle-btn active">Paths</button>
-            <button data-action="help">Help</button>
+        <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-links" id="nav-links">
+            <div class="nav-group">
+                <button data-action="reset">Reset</button>
+                <button data-action="auto-rotate">Rotate</button>
+                <button data-action="expand">Expand</button>
+            </div>
+            <div class="nav-group toggles-group">
+                <button data-action="toggle-yugas" class="toggle-btn active" title="Toggle Yuga Timeline">Yugas</button>
+                <button data-action="toggle-lokas" class="toggle-btn active" title="Toggle Lokas">Lokas</button>
+                <button data-action="toggle-avatars" class="toggle-btn active" title="Toggle Avatars">Avatars</button>
+                <button data-action="toggle-paths" class="toggle-btn active" title="Toggle Moksha Paths">Paths</button>
+            </div>
+            <div class="nav-group">
+                <button data-action="help">Help</button>
+            </div>
         </div>
     </nav>
 

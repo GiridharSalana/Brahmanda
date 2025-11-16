@@ -240,7 +240,54 @@ canvas {
 
 .nav-links {
     display: flex;
-    gap: 15px;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nav-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.toggles-group {
+    border-left: 1px solid rgba(139, 92, 246, 0.3);
+    border-right: 1px solid rgba(139, 92, 246, 0.3);
+    padding: 0 10px;
+    margin: 0 5px;
+}
+
+/* Mobile menu toggle */
+.mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    z-index: 1001;
+}
+
+.mobile-menu-toggle span {
+    width: 25px;
+    height: 3px;
+    background: var(--text-gold);
+    border-radius: 2px;
+    transition: all 0.3s;
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(8px, 8px);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
 }
 
 .nav-links button {
@@ -285,6 +332,17 @@ canvas {
     width: 100%;
     height: calc(100vh - 70px);
     z-index: 1;
+}
+
+@media (max-width: 768px) {
+    #canvas-container {
+        top: 70px;
+        height: calc(100vh - 70px);
+    }
+    
+    .navbar.active ~ #canvas-container {
+        top: auto;
+    }
 }
 
 /* Level Indicator */
@@ -511,29 +569,89 @@ canvas {
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+    .nav-links {
+        gap: 8px;
+    }
+    
+    .nav-links button {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+    
+    .toggles-group {
+        padding: 0 8px;
+        margin: 0 3px;
+    }
+}
+
 @media (max-width: 768px) {
     .navbar {
-        padding: 0 20px;
+        padding: 0 15px;
+        flex-wrap: wrap;
+        height: auto;
+        min-height: 70px;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex;
     }
     
     .nav-brand .title {
-        font-size: 18px;
+        font-size: 16px;
         letter-spacing: 1px;
     }
     
     .nav-brand .om {
-        font-size: 28px;
+        font-size: 24px;
+    }
+    
+    .nav-links {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px 0;
+        border-top: 1px solid rgba(255, 215, 0, 0.2);
+        margin-top: 10px;
+    }
+    
+    .nav-links.active {
+        display: flex;
+    }
+    
+    .nav-group {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .toggles-group {
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid rgba(139, 92, 246, 0.3);
+        border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+        padding: 10px 0;
+        margin: 5px 0;
     }
     
     .nav-links button {
-        padding: 8px 12px;
-        font-size: 12px;
+        padding: 10px 16px;
+        font-size: 14px;
+        flex: 1;
+        min-width: calc(50% - 4px);
+    }
+    
+    .toggle-btn {
+        min-width: calc(25% - 6px);
     }
     
     .level-indicator {
         left: 15px;
-        top: 85px;
-        padding: 15px 20px;
+        top: 90px;
+        padding: 12px 18px;
+        max-width: calc(100% - 30px);
     }
     
     .level-name {
@@ -542,6 +660,11 @@ canvas {
     
     .level-desc {
         font-size: 12px;
+    }
+    
+    .level-hint {
+        font-size: 11px;
+        margin-top: 6px;
     }
     
     .detail-panel {
@@ -556,8 +679,37 @@ canvas {
     }
     
     #mini-map-svg {
-        width: 150px;
-        height: 300px;
+        width: 120px;
+        height: 240px;
+    }
+    
+    .tooltip {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 0 10px;
+    }
+    
+    .nav-brand .title {
+        font-size: 14px;
+    }
+    
+    .nav-brand .om {
+        font-size: 20px;
+    }
+    
+    .level-indicator {
+        left: 10px;
+        right: 10px;
+        padding: 10px 15px;
+    }
+    
+    .mini-map {
+        display: none;
     }
 }
 
