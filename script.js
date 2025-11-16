@@ -1706,6 +1706,14 @@ function setupUIControls() {
         });
     }
     
+    // Function to close mobile menu
+    const closeMobileMenu = () => {
+        if (mobileMenuToggle && navLinks) {
+            mobileMenuToggle.classList.remove('active');
+            navLinks.classList.remove('active');
+        }
+    };
+    
     // Toggle controls
     document.querySelector('[data-action="toggle-yugas"]')?.addEventListener('click', function() {
         toggleStates.yugas = !toggleStates.yugas;
@@ -1713,6 +1721,7 @@ function setupUIControls() {
         if (yugaTimeline) {
             yugaTimeline.visible = toggleStates.yugas;
         }
+        closeMobileMenu();
     });
     
     document.querySelector('[data-action="toggle-lokas"]')?.addEventListener('click', function() {
@@ -1723,6 +1732,7 @@ function setupUIControls() {
                 if (loka) loka.visible = toggleStates.lokas;
             });
         }
+        closeMobileMenu();
     });
     
     document.querySelector('[data-action="toggle-avatars"]')?.addEventListener('click', function() {
@@ -1733,6 +1743,7 @@ function setupUIControls() {
                 if (avatar) avatar.visible = toggleStates.avatars;
             });
         }
+        closeMobileMenu();
     });
     
     document.querySelector('[data-action="toggle-paths"]')?.addEventListener('click', function() {
@@ -1750,6 +1761,16 @@ function setupUIControls() {
                 }
             });
         }
+        closeMobileMenu();
+    });
+    
+    // Close menu when clicking action buttons on mobile
+    document.querySelectorAll('[data-action="reset"], [data-action="auto-rotate"], [data-action="expand"], [data-action="help"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                closeMobileMenu();
+            }
+        });
     });
 }
 
