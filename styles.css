@@ -198,29 +198,24 @@ canvas {
 /* Navbar */
 .navbar {
     position: fixed;
-    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
     height: 70px;
     background: rgba(26, 26, 46, 0.95);
     backdrop-filter: blur(20px);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     padding: 0 40px;
     z-index: 1000;
-    border-top: 1px solid rgba(255, 215, 0, 0.2);
-    gap: 20px;
-    min-width: 0; /* Allow flex items to shrink */
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
 }
 
 .nav-brand {
     display: flex;
     align-items: center;
     gap: 15px;
-    flex-shrink: 0; /* Prevent logo from shrinking */
-    min-width: 0;
-    white-space: nowrap;
 }
 
 .nav-brand .om {
@@ -241,24 +236,35 @@ canvas {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 300px;
 }
 
-.nav-links {
+/* Controls Panel at Bottom */
+.controls-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 40px;
+    z-index: 1000;
+    border-top: 1px solid rgba(255, 215, 0, 0.2);
+    gap: 20px;
+}
+
+.controls-links {
     display: flex;
     gap: 10px;
     align-items: center;
     flex-wrap: nowrap;
-    flex-shrink: 1;
-    min-width: 0;
-    overflow: visible;
-    justify-content: flex-end;
-    max-width: calc(100% - 250px);
+    justify-content: center;
 }
 
-.nav-group {
+.controls-group {
     display: flex;
     gap: 8px;
     align-items: center;
@@ -282,6 +288,8 @@ canvas {
     cursor: pointer;
     padding: 8px;
     z-index: 1001;
+    position: absolute;
+    right: 20px;
 }
 
 .mobile-menu-toggle span {
@@ -304,7 +312,7 @@ canvas {
     transform: rotate(-45deg) translate(7px, -7px);
 }
 
-.nav-links button {
+.controls-links button {
     background: rgba(139, 92, 246, 0.2);
     border: 1px solid rgba(139, 92, 246, 0.4);
     color: var(--text-light);
@@ -316,23 +324,23 @@ canvas {
     transition: all 0.3s;
 }
 
-.nav-links button:hover {
+.controls-links button:hover {
     background: rgba(139, 92, 246, 0.4);
     border-color: var(--text-gold);
     transform: translateY(-2px);
 }
 
-.nav-links button.active {
+.controls-links button.active {
     background: rgba(255, 215, 0, 0.3);
     border-color: var(--text-gold);
 }
 
-.nav-links .toggle-btn {
+.controls-links .toggle-btn {
     font-size: 12px;
     padding: 8px 15px;
 }
 
-.nav-links .toggle-btn.active {
+.controls-links .toggle-btn.active {
     background: rgba(139, 92, 246, 0.4);
     border-color: var(--primary-purple);
     color: var(--text-gold);
@@ -341,10 +349,10 @@ canvas {
 /* Canvas Container - Full Screen */
 #canvas-container {
     position: fixed;
-    top: 0;
+    top: 70px;
     left: 0;
     width: 100%;
-    height: calc(100vh - 70px);
+    height: calc(100vh - 140px);
     z-index: 1;
 }
 
@@ -354,9 +362,9 @@ canvas {
 .detail-panel {
     position: fixed;
     right: -500px;
-    top: 0;
+    top: 70px;
     width: 480px;
-    height: calc(100vh - 70px);
+    height: calc(100vh - 140px);
     background: rgba(26, 26, 46, 0.95);
     backdrop-filter: blur(30px);
     border-left: 1px solid rgba(139, 92, 246, 0.4);
@@ -530,23 +538,11 @@ canvas {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-    .navbar {
-        padding: 0 30px;
-        gap: 15px;
-    }
-    
-    .nav-brand .title {
-        font-size: 20px;
-        letter-spacing: 2px;
-        max-width: 250px;
-    }
-    
-    .nav-links {
+    .controls-links {
         gap: 6px;
-        max-width: calc(100% - 220px);
     }
     
-    .nav-links button {
+    .controls-links button {
         padding: 8px 12px;
         font-size: 12px;
     }
@@ -558,27 +554,16 @@ canvas {
 }
 
 @media (max-width: 1024px) {
-    .navbar {
+    .controls-panel {
         padding: 0 25px;
         gap: 12px;
     }
     
-    .nav-brand .title {
-        font-size: 18px;
-        letter-spacing: 1.5px;
-        max-width: 200px;
-    }
-    
-    .nav-brand .om {
-        font-size: 30px;
-    }
-    
-    .nav-links {
+    .controls-links {
         gap: 5px;
-        max-width: calc(100% - 180px);
     }
     
-    .nav-links button {
+    .controls-links button {
         padding: 7px 10px;
         font-size: 11px;
     }
@@ -595,51 +580,36 @@ canvas {
 }
 
 @media (max-width: 768px) {
-    .navbar {
+    .controls-panel {
         padding: 0 15px;
         flex-wrap: wrap;
         height: auto;
         min-height: 70px;
         gap: 10px;
-    }
-    
-    .nav-brand {
-        flex: 1;
-        min-width: 0;
+        justify-content: center;
     }
     
     .mobile-menu-toggle {
         display: flex;
-        flex-shrink: 0;
     }
     
-    .nav-brand .title {
-        font-size: 16px;
-        letter-spacing: 1px;
-    }
-    
-    .nav-brand .om {
-        font-size: 24px;
-    }
-    
-    .nav-links {
+    .controls-links {
         display: none;
         width: 100%;
         flex-direction: column;
         gap: 10px;
-        padding: 15px 0 0 0;
-        border-top: 1px solid rgba(255, 215, 0, 0.2);
-        margin-top: 10px;
-        flex-shrink: 1;
+        padding: 0 0 15px 0;
+        border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        margin-bottom: 10px;
     }
     
-    .nav-links.active {
+    .controls-links.active {
         display: flex;
     }
     
-    .nav-group {
+    .controls-group {
         width: 100%;
-        justify-content: flex-start;
+        justify-content: center;
         flex-wrap: wrap;
         gap: 8px;
     }
@@ -653,11 +623,11 @@ canvas {
         margin: 5px 0;
     }
     
-    .nav-links button {
+    .controls-links button {
         padding: 10px 16px;
         font-size: 14px;
         flex: 1;
-        min-width: calc(50% - 4px);
+        min-width: calc(33% - 6px);
     }
     
     .toggle-btn {
@@ -668,24 +638,11 @@ canvas {
         width: 100%;
         right: -100%;
     }
-    
-    .tooltip {
-        font-size: 12px;
-        padding: 8px 12px;
-    }
 }
 
 @media (max-width: 480px) {
-    .navbar {
-        padding: 0 10px;
-    }
-    
-    .nav-brand .title {
-        font-size: 14px;
-    }
-    
-    .nav-brand .om {
-        font-size: 20px;
+    .controls-links button {
+        min-width: calc(50% - 4px);
     }
 }
 

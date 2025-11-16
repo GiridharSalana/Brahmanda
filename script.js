@@ -1287,10 +1287,13 @@ function setupControls() {
         if (!hasMoved && mouseDownPosition) {
             // Update mouse position for raycasting
             const navbar = document.querySelector('.navbar');
+            const controlsPanel = document.querySelector('.controls-panel');
             const navbarHeight = navbar ? navbar.offsetHeight : 70;
+            const controlsHeight = controlsPanel ? controlsPanel.offsetHeight : 70;
+            const totalHeight = navbarHeight + controlsHeight;
             
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / (window.innerHeight - navbarHeight)) * 2 + 1;
+            mouse.y = -(e.clientY / (window.innerHeight - totalHeight)) * 2 + 1;
             
             // Check for sphere intersection - prioritize main spheres first
             raycaster.setFromCamera(mouse, camera);
@@ -1571,10 +1574,13 @@ function onMouseMove(event) {
     
     // Calculate mouse position in normalized device coordinates
     const navbar = document.querySelector('.navbar');
+    const controlsPanel = document.querySelector('.controls-panel');
     const navbarHeight = navbar ? navbar.offsetHeight : 70;
+    const controlsHeight = controlsPanel ? controlsPanel.offsetHeight : 70;
+    const totalHeight = navbarHeight + controlsHeight;
     
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / (window.innerHeight - navbarHeight)) * 2 + 1;
+    mouse.y = -(event.clientY / (window.innerHeight - totalHeight)) * 2 + 1;
     
     // Update raycaster
     raycaster.setFromCamera(mouse, camera);
@@ -1652,18 +1658,22 @@ function showDetailPanel(levelData) {
 function onWindowResize() {
     if (!camera || !renderer) return;
     
-    // Calculate navbar height dynamically
+    // Calculate combined height of navbar and controls
     const navbar = document.querySelector('.navbar');
+    const controlsPanel = document.querySelector('.controls-panel');
     const navbarHeight = navbar ? navbar.offsetHeight : 70;
+    const controlsHeight = controlsPanel ? controlsPanel.offsetHeight : 70;
+    const totalHeight = navbarHeight + controlsHeight;
     
-    camera.aspect = window.innerWidth / (window.innerHeight - navbarHeight);
+    camera.aspect = window.innerWidth / (window.innerHeight - totalHeight);
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight - navbarHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight - totalHeight);
     
     // Update canvas container height
     const canvasContainer = document.getElementById('canvas-container');
     if (canvasContainer) {
-        canvasContainer.style.height = `calc(100vh - ${navbarHeight}px)`;
+        canvasContainer.style.height = `calc(100vh - ${totalHeight}px)`;
+        canvasContainer.style.top = `${navbarHeight}px`;
     }
 }
 
@@ -1685,21 +1695,21 @@ function onKeyDown(event) {
 
 // Setup UI controls
 function setupUIControls() {
-    // Mobile menu toggle
+    // Mobile menu toggle for controls panel
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const navLinks = document.getElementById('nav-links');
+    const controlsLinks = document.getElementById('controls-links');
     
-    if (mobileMenuToggle && navLinks) {
+    if (mobileMenuToggle && controlsLinks) {
         mobileMenuToggle.addEventListener('click', () => {
             mobileMenuToggle.classList.toggle('active');
-            navLinks.classList.toggle('active');
+            controlsLinks.classList.toggle('active');
         });
         
         // Close menu when clicking outside
         document.addEventListener('click', (e) => {
-            if (!mobileMenuToggle.contains(e.target) && !navLinks.contains(e.target)) {
+            if (!mobileMenuToggle.contains(e.target) && !controlsLinks.contains(e.target)) {
                 mobileMenuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
+                controlsLinks.classList.remove('active');
             }
         });
     }
