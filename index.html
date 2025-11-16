@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanatan Cosmos - Journey Through Divine Hierarchy</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader">
+            <div class="om-symbol">ॐ</div>
+            <p>Loading Cosmic Realms...</p>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="om">ॐ</span>
+            <span class="title">SANATAN COSMOS</span>
+        </div>
+        <div class="nav-links">
+            <a href="#" data-view="3d">3D View</a>
+            <a href="#" data-view="hierarchy">Hierarchy</a>
+            <a href="#" data-view="timeline">Timeline</a>
+            <a href="#" data-view="about">About</a>
+        </div>
+    </nav>
+
+    <div id="canvas-container"></div>
+
+    <div id="content-overlay">
+        <div class="hierarchy-panel">
+            <div class="level-card" data-level="1">
+                <div class="level-header">
+                    <span class="level-number">1</span>
+                    <h2>PARAMA BRAHMAN</h2>
+                    <span class="level-subtitle">Ultimate Reality</span>
+                </div>
+                <div class="level-content">
+                    <div class="concept-group">
+                        <h3>Nirguna Brahman</h3>
+                        <p>Formless, beyond all attributes and descriptions</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Saguna Brahman / Ishwara</h3>
+                        <p>Personal aspect of the divine</p>
+                        <div class="sub-concepts">
+                            <div class="trimurti">
+                                <h4>Trimurti (Cosmic Functions)</h4>
+                                <ul>
+                                    <li><span class="deity-name">Brahma</span> → Creation</li>
+                                    <li><span class="deity-name">Vishnu</span> → Preservation</li>
+                                    <li><span class="deity-name">Shiva</span> → Destruction / Transformation</li>
+                                </ul>
+                            </div>
+                            <div class="shakti">
+                                <h4>Shakti (Divine Energy)</h4>
+                                <ul>
+                                    <li><span class="deity-name">Saraswati</span> (Brahma)</li>
+                                    <li><span class="deity-name">Lakshmi</span> (Vishnu)</li>
+                                    <li><span class="deity-name">Parvati / Durga / Kali</span> (Shiva)</li>
+                                    <li><span class="deity-name">Adi Shakti</span> (Supreme Energy)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-card" data-level="2">
+                <div class="level-header">
+                    <span class="level-number">2</span>
+                    <h2>COSMIC REALMS</h2>
+                    <span class="level-subtitle">Lokas</span>
+                </div>
+                <div class="level-content">
+                    <div class="concept-group">
+                        <h3>Upper Lokas</h3>
+                        <ul>
+                            <li>Satya-loka (Brahma-loka)</li>
+                            <li>Tapa-loka</li>
+                            <li>Jana-loka</li>
+                            <li>Mahar-loka</li>
+                            <li>Svar-loka (Heaven / Indra-loka)</li>
+                        </ul>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Middle Loka</h3>
+                        <ul>
+                            <li>Bhu-loka (Earth + Human Realm)</li>
+                        </ul>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Lower Lokas</h3>
+                        <ul>
+                            <li>Atala → Patala (Subterranean Realms)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-card" data-level="3">
+                <div class="level-header">
+                    <span class="level-number">3</span>
+                    <h2>COSMIC TIME CYCLES</h2>
+                    <span class="level-subtitle">Kala Chakra</span>
+                </div>
+                <div class="level-content">
+                    <div class="concept-group">
+                        <h3>Kalpa</h3>
+                        <p>4.32 billion years = Day of Brahma</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Manvantara</h3>
+                        <p>306.72 million years</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Maha Yuga</h3>
+                        <p>4.32 million years</p>
+                        <ul>
+                            <li><span class="yuga">Satya Yuga</span> - Age of Truth</li>
+                            <li><span class="yuga">Treta Yuga</span> - Ramayana</li>
+                            <li><span class="yuga">Dvapara Yuga</span> - Mahabharata</li>
+                            <li><span class="yuga">Kali Yuga</span> - Current Age</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-card" data-level="4">
+                <div class="level-header">
+                    <span class="level-number">4</span>
+                    <h2>AVATARS & DIVINE INCARNATIONS</h2>
+                    <span class="level-subtitle">Divine Descents</span>
+                </div>
+                <div class="level-content">
+                    <div class="concept-group">
+                        <h3>Vishnu Avatars</h3>
+                        <p>Matsya → Kurma → Varaha → Narasimha → Vamana → Parashurama → Rama → Krishna → Buddha → Kalki</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Shiva Manifestations</h3>
+                        <p>Rudra, Bhairava, Nataraja, and more</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Shakti Forms</h3>
+                        <p>Durga, Kali, Lalita, and more</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Chiranjeevis (Immortals)</h3>
+                        <p>Hanuman • Parashurama • Vyasa • Vibhishana • Kripacharya • Ashwatthama • Bali • Markandeya</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-card" data-level="5">
+                <div class="level-header">
+                    <span class="level-number">5</span>
+                    <h2>DEITIES & COSMIC FORCES</h2>
+                    <span class="level-subtitle">Divine Beings</span>
+                </div>
+                <div class="level-content">
+                    <div class="concept-group">
+                        <h3>Devas (33 Koti)</h3>
+                        <ul>
+                            <li>Vasus - 8 elemental deities</li>
+                            <li>Rudras - 11 forms of Rudra</li>
+                            <li>Adityas - 12 solar deities</li>
+                            <li>Indra - King of Devas</li>
+                            <li>Prajapati - Lord of Creatures</li>
+                        </ul>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Asuras, Daityas, Danavas</h3>
+                        <p>Opposition forces maintaining cosmic balance</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Cosmic Law</h3>
+                        <p>Dharma maintained via avatars & deities</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-card" data-level="6">
+                <div class="level-header">
+                    <span class="level-number">6</span>
+                    <h2>ITIHASA & EPICS</h2>
+                    <span class="level-subtitle">Sacred Narratives</span>
+                </div>
+                <div class="level-content">
+                    <div class="concept-group">
+                        <h3>Ramayana</h3>
+                        <p>Treta Yuga - Story of Lord Rama</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Mahabharata</h3>
+                        <p>Dvapara Yuga - Great War & Bhagavad Gita</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Puranas</h3>
+                        <p>18 Major Puranas - Stories, cosmology, legends</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Teachings</h3>
+                        <p>Morality, Dharma, Karma, and Devotion</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-card" data-level="7">
+                <div class="level-header">
+                    <span class="level-number">7</span>
+                    <h2>HUMAN REALM</h2>
+                    <span class="level-subtitle">Social & Spiritual Structure</span>
+                </div>
+                <div class="level-content">
+                    <div class="concept-group">
+                        <h3>Varna System</h3>
+                        <ul>
+                            <li>Brahmana - Priests & Teachers</li>
+                            <li>Kshatriya - Warriors & Rulers</li>
+                            <li>Vaishya - Merchants & Farmers</li>
+                            <li>Shudra - Artisans & Laborers</li>
+                        </ul>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Ashrama System</h3>
+                        <ul>
+                            <li>Brahmacharya - Student Life</li>
+                            <li>Grihastha - Householder</li>
+                            <li>Vanaprastha - Retirement</li>
+                            <li>Sannyasa - Renunciation</li>
+                        </ul>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Purusharthas (Life Goals)</h3>
+                        <ul>
+                            <li>Dharma - Righteousness</li>
+                            <li>Artha - Prosperity</li>
+                            <li>Kama - Desire</li>
+                            <li>Moksha - Liberation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-card" data-level="8">
+                <div class="level-header">
+                    <span class="level-number">8</span>
+                    <h2>KARMA & REINCARNATION</h2>
+                    <span class="level-subtitle">Cycle of Rebirth</span>
+                </div>
+                <div class="level-content">
+                    <div class="concept-group">
+                        <h3>Jiva (Soul)</h3>
+                        <p>Experiences birth → death → rebirth</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Karma</h3>
+                        <p>Actions determine next life</p>
+                        <ul>
+                            <li>Sanchita - Accumulated karma</li>
+                            <li>Prarabdha - Current life karma</li>
+                            <li>Kriyamana - Future karma</li>
+                        </ul>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Goal</h3>
+                        <p>Moksha (Liberation) → Reunites with Brahman</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-card" data-level="9">
+                <div class="level-header">
+                    <span class="level-number">9</span>
+                    <h2>SHRUTI & SMRITI</h2>
+                    <span class="level-subtitle">Sacred Scriptures</span>
+                </div>
+                <div class="level-content">
+                    <div class="concept-group">
+                        <h3>Shruti (Heard/Revealed)</h3>
+                        <ul>
+                            <li><strong>Vedas:</strong> Rig, Sama, Yajur, Atharva</li>
+                            <li><strong>Upanishads:</strong> Philosophical teachings</li>
+                        </ul>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Smriti (Remembered)</h3>
+                        <ul>
+                            <li>Puranas</li>
+                            <li>Epics (Ramayana, Mahabharata)</li>
+                            <li>Bhagavad Gita</li>
+                            <li>Dharma Shastras</li>
+                            <li>Agamas / Tantras</li>
+                        </ul>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Purpose</h3>
+                        <p>Guide human dharma and spiritual knowledge</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-card" data-level="10">
+                <div class="level-header">
+                    <span class="level-number">10</span>
+                    <h2>MOKSHA / LIBERATION</h2>
+                    <span class="level-subtitle">Ultimate Goal</span>
+                </div>
+                <div class="level-content">
+                    <div class="concept-group">
+                        <h3>Realization</h3>
+                        <p>Unity of Atman (Self) with Brahman (Ultimate Reality)</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Freedom</h3>
+                        <p>Beyond cycles of birth & death (Samsara)</p>
+                    </div>
+                    <div class="concept-group">
+                        <h3>Paths to Liberation</h3>
+                        <ul>
+                            <li><span class="yoga-path">Karma Yoga</span> → Path of Action</li>
+                            <li><span class="yoga-path">Bhakti Yoga</span> → Path of Devotion</li>
+                            <li><span class="yoga-path">Jnana Yoga</span> → Path of Knowledge</li>
+                            <li><span class="yoga-path">Raja Yoga</span> → Path of Meditation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-controls">
+        <button class="control-btn" id="zoom-in" title="Zoom In">+</button>
+        <button class="control-btn" id="zoom-out" title="Zoom Out">−</button>
+        <button class="control-btn" id="reset-view" title="Reset View">⟲</button>
+        <button class="control-btn" id="toggle-rotation" title="Toggle Rotation">⟳</button>
+    </div>
+
+    <div class="info-panel" id="info-panel">
+        <button class="close-btn" id="close-info">×</button>
+        <div class="info-content"></div>
+    </div>
+
+    <footer class="footer">
+        <p>Journey through the cosmic hierarchy of Sanatan Dharma</p>
+        <p class="om-footer">ॐ शान्तिः शान्तिः शान्तिः</p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
