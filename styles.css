@@ -180,6 +180,17 @@ body::before {
     border-color: var(--text-gold);
 }
 
+.nav-links .toggle-btn {
+    font-size: 12px;
+    padding: 8px 15px;
+}
+
+.nav-links .toggle-btn.active {
+    background: rgba(139, 92, 246, 0.4);
+    border-color: var(--primary-purple);
+    color: var(--text-gold);
+}
+
 /* Canvas Container - Full Screen */
 #canvas-container {
     position: fixed;

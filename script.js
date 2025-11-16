@@ -19,6 +19,22 @@ let INTERSECTED = null;
 let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
 
+// Enhanced features
+let trimurtiGroup = null;
+let shaktiEnergies = [];
+let lokaSpheres = [];
+let yugaTimeline = null;
+let humanAvatars = [];
+let scriptures = [];
+let mokshaPaths = [];
+let audioManager = null;
+let toggleStates = {
+    yugas: true,
+    lokas: true,
+    avatars: true,
+    paths: true
+};
+
 // Hierarchy data with detailed information
 const hierarchyData = [
     {
@@ -407,6 +423,21 @@ function init() {
         // Create cosmic background
         createCosmicBackground();
         
+        // Initialize audio manager
+        if (typeof AudioManager !== 'undefined') {
+            audioManager = new AudioManager();
+        }
+        
+        // Create enhanced immersive features
+        createEnhancedParamaBrahman();
+        createTrimurti();
+        createShaktiEnergies();
+        createInteractiveLokas();
+        createYugaTimeline();
+        createHumanRealm();
+        createScriptures();
+        createMokshaPaths();
+        
         // Setup controls
         setupControls();
         
@@ -679,6 +710,494 @@ function createCosmicBackground() {
     scene.add(stars);
 }
 
+// ==================== ENHANCED IMMERSIVE FEATURES ====================
+
+// Create enhanced Parama Brahman with infinite glowing light
+function createEnhancedParamaBrahman() {
+    const brahmanSphere = spheres[0]; // First sphere is Parama Brahman
+    if (!brahmanSphere) return;
+    
+    // Add infinite light effect with multiple layers
+    for (let i = 0; i < 5; i++) {
+        const glowSize = brahmanSphere.userData.radius * (2 + i * 0.5);
+        const glowGeo = new THREE.SphereGeometry(glowSize, 32, 32);
+        const glowMat = new THREE.MeshBasicMaterial({
+            color: 0xFFD700,
+            transparent: true,
+            opacity: 0.1 / (i + 1),
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending
+        });
+        const glow = new THREE.Mesh(glowGeo, glowMat);
+        glow.raycast = function() {};
+        brahmanSphere.add(glow);
+    }
+    
+    // Add pulsing light particles
+    const particleCount = 100;
+    const particles = new THREE.BufferGeometry();
+    const positions = [];
+    const colors = [];
+    
+    for (let i = 0; i < particleCount; i++) {
+        const radius = brahmanSphere.userData.radius * (1.5 + Math.random() * 2);
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(Math.random() * 2 - 1);
+        
+        positions.push(
+            radius * Math.sin(phi) * Math.cos(theta),
+            radius * Math.sin(phi) * Math.sin(theta),
+            radius * Math.cos(phi)
+        );
+        
+        colors.push(1, 0.84, 0); // Gold
+    }
+    
+    particles.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    particles.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    
+    const particleMat = new THREE.PointsMaterial({
+        size: 0.3,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending
+    });
+    
+    const particleSystem = new THREE.Points(particles, particleMat);
+    particleSystem.raycast = function() {};
+    brahmanSphere.add(particleSystem);
+}
+
+// Create Trimurti (Brahma, Vishnu, Shiva) with flowing aura
+function createTrimurti() {
+    trimurtiGroup = new THREE.Group();
+    trimurtiGroup.position.set(0, 45, 0);
+    
+    const trimurtiData = [
+        { name: 'Brahma', color: 0xFF6B35, position: { x: -8, y: 0, z: 0 }, symbol: '🕉️' },
+        { name: 'Vishnu', color: 0x3B82F6, position: { x: 0, y: 0, z: 0 }, symbol: '🕉️' },
+        { name: 'Shiva', color: 0x8B5CF6, position: { x: 8, y: 0, z: 0 }, symbol: '🕉️' }
+    ];
+    
+    trimurtiData.forEach((deity, index) => {
+        // Create deity sphere
+        const geometry = new THREE.SphereGeometry(1.5, 32, 32);
+        const material = new THREE.MeshPhongMaterial({
+            color: deity.color,
+            emissive: deity.color,
+            emissiveIntensity: 0.6,
+            transparent: true,
+            opacity: 0.9
+        });
+        
+        const deityMesh = new THREE.Mesh(geometry, material);
+        deityMesh.position.set(deity.position.x, deity.position.y, deity.position.z);
+        deityMesh.userData = { name: deity.name, type: 'trimurti' };
+        
+        // Add flowing aura
+        const auraGeo = new THREE.RingGeometry(2, 4, 32);
+        const auraMat = new THREE.MeshBasicMaterial({
+            color: deity.color,
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending
+        });
+        const aura = new THREE.Mesh(auraGeo, auraMat);
+        aura.rotation.x = Math.PI / 2;
+        aura.userData = { rotationSpeed: 0.01 + index * 0.005 };
+        deityMesh.add(aura);
+        
+        // Add energy particles flowing around
+        const energyParticles = new THREE.BufferGeometry();
+        const energyPositions = [];
+        const particleCount = 30;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (i / particleCount) * Math.PI * 2;
+            const radius = 3 + Math.random() * 2;
+            energyPositions.push(
+                Math.cos(angle) * radius,
+                Math.sin(angle) * radius * 0.5,
+                Math.sin(angle) * radius
+            );
+        }
+        
+        energyParticles.setAttribute('position', new THREE.Float32BufferAttribute(energyPositions, 3));
+        const energyMat = new THREE.PointsMaterial({
+            color: deity.color,
+            size: 0.2,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+        const energySystem = new THREE.Points(energyParticles, energyMat);
+        energySystem.userData = { rotationSpeed: 0.02 };
+        deityMesh.add(energySystem);
+        
+        trimurtiGroup.add(deityMesh);
+    });
+    
+    scene.add(trimurtiGroup);
+}
+
+// Create Shakti energies
+function createShaktiEnergies() {
+    const shaktiData = [
+        { name: 'Saraswati', color: 0xFFFFFF, position: { x: -8, y: 42, z: 2 } },
+        { name: 'Lakshmi', color: 0xFFD700, position: { x: 0, y: 42, z: 2 } },
+        { name: 'Parvati', color: 0xFF6B35, position: { x: 8, y: 42, z: 2 } },
+        { name: 'Adi Shakti', color: 0xFF1493, position: { x: 0, y: 48, z: 0 } }
+    ];
+    
+    shaktiData.forEach((shakti, index) => {
+        const geometry = new THREE.OctahedronGeometry(0.8, 0);
+        const material = new THREE.MeshPhongMaterial({
+            color: shakti.color,
+            emissive: shakti.color,
+            emissiveIntensity: 0.7,
+            transparent: true,
+            opacity: 0.9
+        });
+        
+        const shaktiMesh = new THREE.Mesh(geometry, material);
+        shaktiMesh.position.set(shakti.position.x, shakti.position.y, shakti.position.z);
+        shaktiMesh.userData = { name: shakti.name, type: 'shakti', position: shakti.position };
+        
+        // Add glowing trail
+        const trailGeo = new THREE.BufferGeometry();
+        const trailPositions = [];
+        const trailCount = 20;
+        
+        for (let i = 0; i < trailCount; i++) {
+            trailPositions.push(
+                shakti.position.x,
+                shakti.position.y - i * 0.3,
+                shakti.position.z
+            );
+        }
+        
+        trailGeo.setAttribute('position', new THREE.Float32BufferAttribute(trailPositions, 3));
+        const trailMat = new THREE.LineBasicMaterial({
+            color: shakti.color,
+            transparent: true,
+            opacity: 0.5,
+            linewidth: 2
+        });
+        const trail = new THREE.Line(trailGeo, trailMat);
+        trail.userData = { baseY: shakti.position.y };
+        shaktiMesh.add(trail);
+        
+        scene.add(shaktiMesh);
+        shaktiEnergies.push(shaktiMesh);
+    });
+}
+
+// Create interactive Lokas as layered spheres
+function createInteractiveLokas() {
+    const lokaData = [
+        { name: 'Satya-loka', color: 0xFFD700, y: 40, radius: 2.5 },
+        { name: 'Tapa-loka', color: 0xFFA500, y: 35, radius: 2.3 },
+        { name: 'Jana-loka', color: 0xFF6B35, y: 30, radius: 2.1 },
+        { name: 'Mahar-loka', color: 0x8B5CF6, y: 25, radius: 2.0 },
+        { name: 'Svar-loka', color: 0x3B82F6, y: 20, radius: 1.9 },
+        { name: 'Bhu-loka', color: 0x10B981, y: 5, radius: 3.0 },
+        { name: 'Atala', color: 0x6366F1, y: -5, radius: 1.8 },
+        { name: 'Vitala', color: 0x8B5CF6, y: -10, radius: 1.7 },
+        { name: 'Sutala', color: 0x6B46C1, y: -15, radius: 1.6 }
+    ];
+    
+    lokaData.forEach((loka, index) => {
+        const geometry = new THREE.SphereGeometry(loka.radius, 32, 32);
+        const material = new THREE.MeshPhongMaterial({
+            color: loka.color,
+            emissive: loka.color,
+            emissiveIntensity: 0.3,
+            transparent: true,
+            opacity: 0.6
+        });
+        
+        const lokaMesh = new THREE.Mesh(geometry, material);
+        lokaMesh.position.set(0, loka.y, 0);
+        lokaMesh.userData = { name: loka.name, type: 'loka', originalY: loka.y };
+        
+        // Add floating particles
+        const cloudGeo = new THREE.BufferGeometry();
+        const cloudPositions = [];
+        const cloudCount = 50;
+        
+        for (let i = 0; i < cloudCount; i++) {
+            const radius = loka.radius * 1.5;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(Math.random() * 2 - 1);
+            
+            cloudPositions.push(
+                radius * Math.sin(phi) * Math.cos(theta),
+                radius * Math.sin(phi) * Math.sin(theta) * 0.3,
+                radius * Math.cos(phi)
+            );
+        }
+        
+        cloudGeo.setAttribute('position', new THREE.Float32BufferAttribute(cloudPositions, 3));
+        const cloudMat = new THREE.PointsMaterial({
+            color: loka.color,
+            size: 0.1,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+        const clouds = new THREE.Points(cloudGeo, cloudMat);
+        clouds.raycast = function() {};
+        lokaMesh.add(clouds);
+        
+        scene.add(lokaMesh);
+        lokaSpheres.push(lokaMesh);
+    });
+}
+
+// Create Yuga timeline with energy flows
+function createYugaTimeline() {
+    yugaTimeline = new THREE.Group();
+    yugaTimeline.position.set(20, 15, -10);
+    
+    const yugaData = [
+        { name: 'Satya', color: 0xFFD700, duration: 1.728, position: 0 },
+        { name: 'Treta', color: 0xFF6B35, duration: 1.296, position: 1.728 },
+        { name: 'Dvapara', color: 0x8B5CF6, duration: 0.864, position: 3.024 },
+        { name: 'Kali', color: 0x6366F1, duration: 0.432, position: 3.888 }
+    ];
+    
+    const totalDuration = 4.32;
+    const scale = 5;
+    
+    yugaData.forEach((yuga, index) => {
+        // Create timeline segment
+        const segmentGeo = new THREE.BoxGeometry(yuga.duration * scale, 1, 1);
+        const segmentMat = new THREE.MeshPhongMaterial({
+            color: yuga.color,
+            emissive: yuga.color,
+            emissiveIntensity: 0.5,
+            transparent: true,
+            opacity: 0.8
+        });
+        
+        const segment = new THREE.Mesh(segmentGeo, segmentMat);
+        segment.position.set(yuga.position * scale + (yuga.duration * scale) / 2, 0, 0);
+        segment.userData = { name: yuga.name, type: 'yuga' };
+        
+        // Add energy flow particles
+        const flowGeo = new THREE.BufferGeometry();
+        const flowPositions = [];
+        const flowCount = 20;
+        
+        for (let i = 0; i < flowCount; i++) {
+            const t = i / flowCount;
+            flowPositions.push(
+                yuga.position * scale + t * yuga.duration * scale,
+                Math.sin(t * Math.PI * 4) * 0.5,
+                0
+            );
+        }
+        
+        flowGeo.setAttribute('position', new THREE.Float32BufferAttribute(flowPositions, 3));
+        const flowMat = new THREE.LineBasicMaterial({
+            color: yuga.color,
+            transparent: true,
+            opacity: 0.6
+        });
+        const flow = new THREE.Line(flowGeo, flowMat);
+        segment.add(flow);
+        
+        yugaTimeline.add(segment);
+    });
+    
+    scene.add(yugaTimeline);
+}
+
+// Create human realm with luminous avatars
+function createHumanRealm() {
+    const humanRealm = spheres.find(s => s.userData.id === 7); // Human Realm sphere
+    if (!humanRealm) return;
+    
+    // Create human avatars as glowing points
+    const avatarCount = 20;
+    const avatarGeo = new THREE.BufferGeometry();
+    const avatarPositions = [];
+    const avatarColors = [];
+    
+    for (let i = 0; i < avatarCount; i++) {
+        const radius = humanRealm.userData.radius * (0.8 + Math.random() * 0.4);
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(Math.random() * 2 - 1);
+        
+        avatarPositions.push(
+            humanRealm.position.x + radius * Math.sin(phi) * Math.cos(theta),
+            humanRealm.position.y + radius * Math.sin(phi) * Math.sin(theta),
+            humanRealm.position.z + radius * Math.cos(phi)
+        );
+        
+        // Random colors representing different souls
+        const hue = Math.random();
+        const color = new THREE.Color().setHSL(hue, 0.7, 0.6);
+        avatarColors.push(color.r, color.g, color.b);
+    }
+    
+    avatarGeo.setAttribute('position', new THREE.Float32BufferAttribute(avatarPositions, 3));
+    avatarGeo.setAttribute('color', new THREE.Float32BufferAttribute(avatarColors, 3));
+    
+    const avatarMat = new THREE.PointsMaterial({
+        size: 0.5,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending
+    });
+    
+    const avatars = new THREE.Points(avatarGeo, avatarMat);
+    avatars.userData = { type: 'humanAvatars', count: avatarCount };
+    scene.add(avatars);
+    humanAvatars.push(avatars);
+    
+    // Create reincarnation cycle visualization
+    createReincarnationCycles(humanRealm);
+}
+
+// Create reincarnation cycles
+function createReincarnationCycles(centerSphere) {
+    const cycleCount = 5;
+    
+    for (let i = 0; i < cycleCount; i++) {
+        const radius = centerSphere.userData.radius * (1.2 + i * 0.3);
+        const cycleGeo = new THREE.RingGeometry(radius, radius + 0.5, 64);
+        const cycleMat = new THREE.MeshBasicMaterial({
+            color: 0x10B981,
+            transparent: true,
+            opacity: 0.2,
+            side: THREE.DoubleSide
+        });
+        
+        const cycle = new THREE.Mesh(cycleGeo, cycleMat);
+        cycle.rotation.x = Math.PI / 2 + (i * Math.PI / 8);
+        cycle.position.copy(centerSphere.position);
+        cycle.userData = { rotationSpeed: 0.01 + i * 0.005 };
+        cycle.raycast = function() {};
+        
+        scene.add(cycle);
+    }
+}
+
+// Create floating scriptures
+function createScriptures() {
+    const scriptureData = [
+        { name: 'Rigveda', color: 0xFFD700, position: { x: -25, y: -5, z: -15 } },
+        { name: 'Samaveda', color: 0xFF6B35, position: { x: -20, y: -5, z: -10 } },
+        { name: 'Yajurveda', color: 0x8B5CF6, position: { x: -15, y: -5, z: -5 } },
+        { name: 'Atharvaveda', color: 0x3B82F6, position: { x: -10, y: -5, z: 0 } },
+        { name: 'Upanishads', color: 0x10B981, position: { x: -5, y: -5, z: 5 } },
+        { name: 'Bhagavad Gita', color: 0xFF1493, position: { x: 0, y: -5, z: 10 } }
+    ];
+    
+    scriptureData.forEach((scripture, index) => {
+        // Create book/scroll shape
+        const geometry = new THREE.BoxGeometry(1, 1.5, 0.3);
+        const material = new THREE.MeshPhongMaterial({
+            color: scripture.color,
+            emissive: scripture.color,
+            emissiveIntensity: 0.4,
+            transparent: true,
+            opacity: 0.9
+        });
+        
+        const book = new THREE.Mesh(geometry, material);
+        book.position.set(scripture.position.x, scripture.position.y, scripture.position.z);
+        book.userData = { name: scripture.name, type: 'scripture' };
+        
+        // Add glow
+        const glowGeo = new THREE.BoxGeometry(1.2, 1.7, 0.5);
+        const glowMat = new THREE.MeshBasicMaterial({
+            color: scripture.color,
+            transparent: true,
+            opacity: 0.2,
+            blending: THREE.AdditiveBlending
+        });
+        const glow = new THREE.Mesh(glowGeo, glowMat);
+        glow.raycast = function() {};
+        book.add(glow);
+        
+        scene.add(book);
+        scriptures.push(book);
+    });
+}
+
+// Create Moksha paths (Karma, Bhakti, Jnana, Raja Yoga)
+function createMokshaPaths() {
+    const mokshaSphere = spheres.find(s => s.userData.id === 10); // Moksha sphere
+    const humanSphere = spheres.find(s => s.userData.id === 7); // Human Realm sphere
+    
+    if (!mokshaSphere || !humanSphere) return;
+    
+    const pathData = [
+        { name: 'Karma Yoga', color: 0xFF6B35 },
+        { name: 'Bhakti Yoga', color: 0xFF1493 },
+        { name: 'Jnana Yoga', color: 0x3B82F6 },
+        { name: 'Raja Yoga', color: 0x8B5CF6 }
+    ];
+    
+    pathData.forEach((path, index) => {
+        const start = humanSphere.position;
+        const end = mokshaSphere.position;
+        
+        // Create curved path
+        const midPoint = new THREE.Vector3(
+            (start.x + end.x) / 2 + (Math.cos(index * Math.PI / 2) * 10),
+            (start.y + end.y) / 2,
+            (start.z + end.z) / 2 + (Math.sin(index * Math.PI / 2) * 10)
+        );
+        
+        const curve = new THREE.QuadraticBezierCurve3(start, midPoint, end);
+        const points = curve.getPoints(50);
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        
+        const material = new THREE.LineBasicMaterial({
+            color: path.color,
+            transparent: true,
+            opacity: 0.6,
+            linewidth: 3
+        });
+        
+        const pathLine = new THREE.Line(geometry, material);
+        pathLine.userData = { name: path.name, type: 'mokshaPath', curve: curve };
+        scene.add(pathLine);
+        mokshaPaths.push(pathLine);
+        
+        // Add flowing particles along path
+        const particleCount = 10;
+        const particles = [];
+        
+        for (let i = 0; i < particleCount; i++) {
+            const t = i / particleCount;
+            const pos = curve.getPoint(t);
+            
+            const particleGeo = new THREE.SphereGeometry(0.2, 8, 8);
+            const particleMat = new THREE.MeshBasicMaterial({
+                color: path.color,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const particle = new THREE.Mesh(particleGeo, particleMat);
+            particle.position.copy(pos);
+            particle.userData = { t, pathIndex: index, speed: 0.01, curve: curve };
+            scene.add(particle);
+            particles.push(particle);
+        }
+        
+        pathLine.userData.particles = particles;
+    });
+}
+
 // Simple orbit controls
 function setupControls() {
     const canvas = renderer.domElement;
@@ -829,6 +1348,86 @@ function animate() {
             particle.scale.set(scale, scale, scale);
         });
     });
+    
+    // Animate Trimurti auras and energy particles
+    if (trimurtiGroup) {
+        trimurtiGroup.children.forEach((deity, index) => {
+            deity.children.forEach(child => {
+                if (child.userData && child.userData.rotationSpeed) {
+                    child.rotation.z += child.userData.rotationSpeed;
+                }
+            });
+            deity.rotation.y += 0.01;
+        });
+    }
+    
+    // Animate Shakti energies
+    shaktiEnergies.forEach((shakti, index) => {
+        shakti.rotation.y += 0.02;
+        shakti.rotation.x += 0.01;
+        shakti.position.y = shakti.userData.position.y + Math.sin(time + index) * 0.5;
+        
+        // Animate trails
+        shakti.children.forEach(child => {
+            if (child.userData && child.userData.baseY) {
+                const positions = child.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    positions[i + 1] = child.userData.baseY - (i / 3) * 0.3 + Math.sin(time * 2 + i) * 0.2;
+                }
+                child.geometry.attributes.position.needsUpdate = true;
+            }
+        });
+    });
+    
+    // Animate Lokas
+    if (toggleStates.lokas) {
+        lokaSpheres.forEach((loka, index) => {
+            loka.position.y = loka.userData.originalY + Math.sin(time + index) * 1;
+            loka.rotation.y += 0.005;
+        });
+    }
+    
+    // Animate Yuga timeline
+    if (toggleStates.yugas && yugaTimeline) {
+        yugaTimeline.rotation.y += 0.01;
+    }
+    
+    // Animate human avatars
+    if (humanAvatars.length > 0) {
+        humanAvatars.forEach(avatarSystem => {
+            const positions = avatarSystem.geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                positions[i + 1] += Math.sin(time + i) * 0.01;
+            }
+            avatarSystem.geometry.attributes.position.needsUpdate = true;
+        });
+    }
+    
+    // Animate scriptures
+    scriptures.forEach((scripture, index) => {
+        scripture.rotation.y += 0.01;
+        scripture.position.y += Math.sin(time * 0.5 + index) * 0.3;
+    });
+    
+    // Animate Moksha path particles
+    if (toggleStates.paths) {
+        mokshaPaths.forEach((path, pathIndex) => {
+            if (path.userData && path.userData.particles) {
+                path.userData.particles.forEach(particle => {
+                    particle.userData.t += particle.userData.speed;
+                    if (particle.userData.t > 1) particle.userData.t = 0;
+                    
+                    const pos = particle.userData.curve.getPoint(particle.userData.t);
+                    particle.position.copy(pos);
+                });
+            }
+        });
+    }
+    
+    // Update audio listener position
+    if (audioManager && audioManager.isEnabled) {
+        audioManager.updateListener(camera);
+    }
     
     // Auto-rotate camera
     if (isRotating) {
@@ -985,6 +1584,44 @@ function setupUIControls() {
             if (instructions) instructions.classList.remove('hidden');
         });
     }
+    
+    // Toggle controls
+    document.querySelector('[data-action="toggle-yugas"]')?.addEventListener('click', function() {
+        toggleStates.yugas = !toggleStates.yugas;
+        this.classList.toggle('active');
+        if (yugaTimeline) {
+            yugaTimeline.visible = toggleStates.yugas;
+        }
+    });
+    
+    document.querySelector('[data-action="toggle-lokas"]')?.addEventListener('click', function() {
+        toggleStates.lokas = !toggleStates.lokas;
+        this.classList.toggle('active');
+        lokaSpheres.forEach(loka => {
+            loka.visible = toggleStates.lokas;
+        });
+    });
+    
+    document.querySelector('[data-action="toggle-avatars"]')?.addEventListener('click', function() {
+        toggleStates.avatars = !toggleStates.avatars;
+        this.classList.toggle('active');
+        humanAvatars.forEach(avatar => {
+            avatar.visible = toggleStates.avatars;
+        });
+    });
+    
+    document.querySelector('[data-action="toggle-paths"]')?.addEventListener('click', function() {
+        toggleStates.paths = !toggleStates.paths;
+        this.classList.toggle('active');
+        mokshaPaths.forEach(path => {
+            path.visible = toggleStates.paths;
+            if (path.userData && path.userData.particles) {
+                path.userData.particles.forEach(particle => {
+                    particle.visible = toggleStates.paths;
+                });
+            }
+        });
+    });
 }
 
 // Create minimap
