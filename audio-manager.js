@@ -75,7 +75,7 @@ class AudioManager {
     
     // Update listener position (camera position)
     updateListener(camera) {
-        if (!this.isEnabled || !this.listener) return;
+        if (!this.isEnabled || !this.listener || typeof THREE === 'undefined') return;
         
         this.listener.positionX.value = camera.position.x;
         this.listener.positionY.value = camera.position.y;

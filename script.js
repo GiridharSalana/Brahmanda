@@ -1,11 +1,3 @@
-// Wait for Three.js to load
-if (typeof THREE === 'undefined') {
-    console.error('Three.js not loaded!');
-    document.getElementById('loading-screen').innerHTML = '<div class="loader"><div class="om-symbol">ॐ</div><p>Error: Three.js failed to load</p></div>';
-} else {
-    console.log('Three.js loaded successfully');
-}
-
 // Global variables
 let scene, camera, renderer;
 let spheres = [];
@@ -429,14 +421,18 @@ function init() {
         }
         
         // Create enhanced immersive features
-        createEnhancedParamaBrahman();
-        createTrimurti();
-        createShaktiEnergies();
-        createInteractiveLokas();
-        createYugaTimeline();
-        createHumanRealm();
-        createScriptures();
-        createMokshaPaths();
+        try {
+            createEnhancedParamaBrahman();
+            createTrimurti();
+            createShaktiEnergies();
+            createInteractiveLokas();
+            createYugaTimeline();
+            createHumanRealm();
+            createScriptures();
+            createMokshaPaths();
+        } catch (error) {
+            console.warn('Some enhanced features failed to load:', error);
+        }
         
         // Setup controls
         setupControls();
@@ -714,8 +710,9 @@ function createCosmicBackground() {
 
 // Create enhanced Parama Brahman with infinite glowing light
 function createEnhancedParamaBrahman() {
+    if (!spheres || spheres.length === 0) return;
     const brahmanSphere = spheres[0]; // First sphere is Parama Brahman
-    if (!brahmanSphere) return;
+    if (!brahmanSphere || !brahmanSphere.userData) return;
     
     // Add infinite light effect with multiple layers
     for (let i = 0; i < 5; i++) {
@@ -1350,40 +1347,49 @@ function animate() {
     });
     
     // Animate Trimurti auras and energy particles
-    if (trimurtiGroup) {
+    if (trimurtiGroup && trimurtiGroup.children) {
         trimurtiGroup.children.forEach((deity, index) => {
-            deity.children.forEach(child => {
-                if (child.userData && child.userData.rotationSpeed) {
-                    child.rotation.z += child.userData.rotationSpeed;
-                }
-            });
-            deity.rotation.y += 0.01;
+            if (deity && deity.children) {
+                deity.children.forEach(child => {
+                    if (child && child.userData && child.userData.rotationSpeed) {
+                        child.rotation.z += child.userData.rotationSpeed;
+                    }
+                });
+                deity.rotation.y += 0.01;
+            }
         });
     }
     
     // Animate Shakti energies
-    shaktiEnergies.forEach((shakti, index) => {
-        shakti.rotation.y += 0.02;
-        shakti.rotation.x += 0.01;
-        shakti.position.y = shakti.userData.position.y + Math.sin(time + index) * 0.5;
-        
-        // Animate trails
-        shakti.children.forEach(child => {
-            if (child.userData && child.userData.baseY) {
-                const positions = child.geometry.attributes.position.array;
-                for (let i = 0; i < positions.length; i += 3) {
-                    positions[i + 1] = child.userData.baseY - (i / 3) * 0.3 + Math.sin(time * 2 + i) * 0.2;
-                }
-                child.geometry.attributes.position.needsUpdate = true;
+    if (shaktiEnergies && shaktiEnergies.length > 0) {
+        shaktiEnergies.forEach((shakti, index) => {
+            if (!shakti || !shakti.userData || !shakti.userData.position) return;
+            shakti.rotation.y += 0.02;
+            shakti.rotation.x += 0.01;
+            shakti.position.y = shakti.userData.position.y + Math.sin(time + index) * 0.5;
+            
+            // Animate trails
+            if (shakti.children) {
+                shakti.children.forEach(child => {
+                    if (child && child.userData && child.userData.baseY && child.geometry && child.geometry.attributes) {
+                        const positions = child.geometry.attributes.position.array;
+                        for (let i = 0; i < positions.length; i += 3) {
+                            positions[i + 1] = child.userData.baseY - (i / 3) * 0.3 + Math.sin(time * 2 + i) * 0.2;
+                        }
+                        child.geometry.attributes.position.needsUpdate = true;
+                    }
+                });
             }
         });
-    });
+    }
     
     // Animate Lokas
-    if (toggleStates.lokas) {
+    if (toggleStates.lokas && lokaSpheres && lokaSpheres.length > 0) {
         lokaSpheres.forEach((loka, index) => {
-            loka.position.y = loka.userData.originalY + Math.sin(time + index) * 1;
-            loka.rotation.y += 0.005;
+            if (loka && loka.userData && loka.userData.originalY !== undefined) {
+                loka.position.y = loka.userData.originalY + Math.sin(time + index) * 1;
+                loka.rotation.y += 0.005;
+            }
         });
     }
     
@@ -1393,32 +1399,40 @@ function animate() {
     }
     
     // Animate human avatars
-    if (humanAvatars.length > 0) {
+    if (humanAvatars && humanAvatars.length > 0) {
         humanAvatars.forEach(avatarSystem => {
-            const positions = avatarSystem.geometry.attributes.position.array;
-            for (let i = 0; i < positions.length; i += 3) {
-                positions[i + 1] += Math.sin(time + i) * 0.01;
+            if (avatarSystem && avatarSystem.geometry && avatarSystem.geometry.attributes && avatarSystem.geometry.attributes.position) {
+                const positions = avatarSystem.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    positions[i + 1] += Math.sin(time + i) * 0.01;
+                }
+                avatarSystem.geometry.attributes.position.needsUpdate = true;
             }
-            avatarSystem.geometry.attributes.position.needsUpdate = true;
         });
     }
     
     // Animate scriptures
-    scriptures.forEach((scripture, index) => {
-        scripture.rotation.y += 0.01;
-        scripture.position.y += Math.sin(time * 0.5 + index) * 0.3;
-    });
+    if (scriptures && scriptures.length > 0) {
+        scriptures.forEach((scripture, index) => {
+            if (scripture) {
+                scripture.rotation.y += 0.01;
+                scripture.position.y += Math.sin(time * 0.5 + index) * 0.3;
+            }
+        });
+    }
     
     // Animate Moksha path particles
-    if (toggleStates.paths) {
+    if (toggleStates.paths && mokshaPaths && mokshaPaths.length > 0) {
         mokshaPaths.forEach((path, pathIndex) => {
-            if (path.userData && path.userData.particles) {
+            if (path && path.userData && path.userData.particles) {
                 path.userData.particles.forEach(particle => {
-                    particle.userData.t += particle.userData.speed;
-                    if (particle.userData.t > 1) particle.userData.t = 0;
-                    
-                    const pos = particle.userData.curve.getPoint(particle.userData.t);
-                    particle.position.copy(pos);
+                    if (particle && particle.userData && particle.userData.curve) {
+                        particle.userData.t += particle.userData.speed;
+                        if (particle.userData.t > 1) particle.userData.t = 0;
+                        
+                        const pos = particle.userData.curve.getPoint(particle.userData.t);
+                        particle.position.copy(pos);
+                    }
                 });
             }
         });
@@ -1597,30 +1611,38 @@ function setupUIControls() {
     document.querySelector('[data-action="toggle-lokas"]')?.addEventListener('click', function() {
         toggleStates.lokas = !toggleStates.lokas;
         this.classList.toggle('active');
-        lokaSpheres.forEach(loka => {
-            loka.visible = toggleStates.lokas;
-        });
+        if (lokaSpheres && lokaSpheres.length > 0) {
+            lokaSpheres.forEach(loka => {
+                if (loka) loka.visible = toggleStates.lokas;
+            });
+        }
     });
     
     document.querySelector('[data-action="toggle-avatars"]')?.addEventListener('click', function() {
         toggleStates.avatars = !toggleStates.avatars;
         this.classList.toggle('active');
-        humanAvatars.forEach(avatar => {
-            avatar.visible = toggleStates.avatars;
-        });
+        if (humanAvatars && humanAvatars.length > 0) {
+            humanAvatars.forEach(avatar => {
+                if (avatar) avatar.visible = toggleStates.avatars;
+            });
+        }
     });
     
     document.querySelector('[data-action="toggle-paths"]')?.addEventListener('click', function() {
         toggleStates.paths = !toggleStates.paths;
         this.classList.toggle('active');
-        mokshaPaths.forEach(path => {
-            path.visible = toggleStates.paths;
-            if (path.userData && path.userData.particles) {
-                path.userData.particles.forEach(particle => {
-                    particle.visible = toggleStates.paths;
-                });
-            }
-        });
+        if (mokshaPaths && mokshaPaths.length > 0) {
+            mokshaPaths.forEach(path => {
+                if (path) {
+                    path.visible = toggleStates.paths;
+                    if (path.userData && path.userData.particles) {
+                        path.userData.particles.forEach(particle => {
+                            if (particle) particle.visible = toggleStates.paths;
+                        });
+                    }
+                }
+            });
+        }
     });
 }
 
