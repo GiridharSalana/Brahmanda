@@ -19,6 +19,13 @@
         </div>
     </div>
 
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="om">ॐ</span>
+            <span class="title">SANATAN COSMOS</span>
+        </div>
+    </nav>
+
     <!-- Main 3D Canvas -->
     <div id="canvas-container"></div>
     
@@ -46,33 +53,30 @@
         </div>
     </div>
 
-    <nav class="navbar">
-        <div class="nav-brand">
-            <span class="om">ॐ</span>
-            <span class="title">SANATAN COSMOS</span>
-        </div>
-        <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+    <!-- Controls Panel at Bottom -->
+    <div class="controls-panel">
+        <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle controls">
             <span></span>
             <span></span>
             <span></span>
         </button>
-        <div class="nav-links" id="nav-links">
-            <div class="nav-group">
+        <div class="controls-links" id="controls-links">
+            <div class="controls-group">
                 <button data-action="reset">Reset</button>
                 <button data-action="auto-rotate">Rotate</button>
                 <button data-action="expand">Expand</button>
             </div>
-            <div class="nav-group toggles-group">
+            <div class="controls-group toggles-group">
                 <button data-action="toggle-yugas" class="toggle-btn active" title="Toggle Yuga Timeline">Yugas</button>
                 <button data-action="toggle-lokas" class="toggle-btn active" title="Toggle Lokas">Lokas</button>
                 <button data-action="toggle-avatars" class="toggle-btn active" title="Toggle Avatars">Avatars</button>
                 <button data-action="toggle-paths" class="toggle-btn active" title="Toggle Moksha Paths">Paths</button>
             </div>
-            <div class="nav-group">
+            <div class="controls-group">
                 <button data-action="help">Help</button>
             </div>
         </div>
-    </nav>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
@@ -86,4 +90,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
