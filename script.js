@@ -1,5 +1,13 @@
+// Wait for Three.js to load
+if (typeof THREE === 'undefined') {
+    console.error('Three.js not loaded!');
+    document.getElementById('loading-screen').innerHTML = '<div class="loader"><div class="om-symbol">ॐ</div><p>Error: Three.js failed to load</p></div>';
+} else {
+    console.log('Three.js loaded successfully');
+}
+
 // Global variables
-let scene, camera, renderer, controls;
+let scene, camera, renderer;
 let spheres = [];
 let textLabels = [];
 let connections = [];
@@ -8,6 +16,8 @@ let isRotating = false;
 let raycaster, mouse;
 let selectedSphere = null;
 let INTERSECTED = null;
+let isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
 
 // Hierarchy data with detailed information
 const hierarchyData = [
@@ -339,68 +349,88 @@ const hierarchyData = [
 
 // Initialize scene
 function init() {
-    // Create scene
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a0f);
-    scene.fog = new THREE.FogExp2(0x0a0a0f, 0.008);
-    
-    // Create camera
-    camera = new THREE.PerspectiveCamera(
-        60,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-    );
-    camera.position.set(0, 20, 70);
-    camera.lookAt(0, 15, 0);
-    
-    // Create renderer
-    renderer = new THREE.WebGLRenderer({ 
-        antialias: true,
-        alpha: true 
-    });
-    renderer.setSize(window.innerWidth, window.innerHeight - 70);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    document.getElementById('canvas-container').appendChild(renderer.domElement);
-    
-    // Add OrbitControls (we'll implement a simple version)
-    setupControls();
-    
-    // Raycaster for mouse interaction
-    raycaster = new THREE.Raycaster();
-    mouse = new THREE.Vector2();
-    
-    // Add lights
-    setupLights();
-    
-    // Create hierarchy spheres
-    createHierarchySpheres();
-    
-    // Create connections
-    createConnections();
-    
-    // Create particle systems
-    createParticleSystems();
-    
-    // Add cosmic background
-    createCosmicBackground();
-    
-    // Event listeners
-    window.addEventListener('resize', onWindowResize);
-    window.addEventListener('click', onClick);
-    window.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('keydown', onKeyDown);
-    
-    // UI event listeners
-    setupUIControls();
-    
-    // Start animation
-    animate();
-    
-    // Create minimap
-    createMinimap();
+    try {
+        console.log('Initializing 3D scene...');
+        
+        // Check if THREE is available
+        if (typeof THREE === 'undefined') {
+            throw new Error('Three.js library not loaded');
+        }
+        
+        // Create scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0f);
+        scene.fog = new THREE.FogExp2(0x0a0a0f, 0.008);
+        
+        // Create camera
+        camera = new THREE.PerspectiveCamera(
+            60,
+            window.innerWidth / (window.innerHeight - 70),
+            0.1,
+            1000
+        );
+        camera.position.set(0, 20, 70);
+        camera.lookAt(0, 15, 0);
+        
+        // Create renderer
+        const container = document.getElementById('canvas-container');
+        if (!container) {
+            throw new Error('Canvas container not found');
+        }
+        
+        renderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            alpha: true 
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight - 70);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+        
+        // Raycaster for mouse interaction
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+        
+        // Add lights
+        setupLights();
+        
+        // Create hierarchy spheres
+        createHierarchySpheres();
+        
+        // Create connections
+        createConnections();
+        
+        // Create particle systems
+        createParticleSystems();
+        
+        // Create cosmic background
+        createCosmicBackground();
+        
+        // Setup controls
+        setupControls();
+        
+        // Event listeners
+        window.addEventListener('resize', onWindowResize);
+        window.addEventListener('click', onClick);
+        window.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('keydown', onKeyDown);
+        
+        // UI event listeners
+        setupUIControls();
+        
+        // Create minimap
+        createMinimap();
+        
+        // Start animation
+        animate();
+        
+        console.log('3D scene initialized successfully!');
+    } catch (error) {
+        console.error('Error initializing 3D scene:', error);
+        document.getElementById('loading-screen').innerHTML = 
+            '<div class="loader"><div class="om-symbol">ॐ</div><p>Error: ' + error.message + '</p></div>';
+    }
 }
 
 // Setup lighting
@@ -433,9 +463,9 @@ function setupLights() {
 function createHierarchySpheres() {
     hierarchyData.forEach((level, index) => {
         // Create sphere
-        const geometry = new THREE.SphereGeometry(level.radius, 64, 64);
+        const geometry = new THREE.SphereGeometry(level.radius, 32, 32);
         
-        // Create shader material for glowing effect
+        // Create material
         const material = new THREE.MeshPhongMaterial({
             color: level.color,
             emissive: level.color,
@@ -467,7 +497,7 @@ function createHierarchySpheres() {
         // Add glow effect
         addGlowToSphere(sphere, level.color, level.radius);
         
-        // Create text label using CSS2DRenderer simulation
+        // Create text label
         createTextLabel(sphere, level.name, level.subtitle);
     });
 }
@@ -509,7 +539,7 @@ function addGlowToSphere(mesh, color, radius) {
     mesh.add(glowMesh);
 }
 
-// Create text labels (simplified version without CSS2DRenderer)
+// Create text labels
 function createTextLabel(sphere, name, subtitle) {
     // Create canvas for text
     const canvas = document.createElement('canvas');
@@ -521,12 +551,12 @@ function createTextLabel(sphere, name, subtitle) {
     context.fillStyle = 'rgba(0, 0, 0, 0)';
     context.fillRect(0, 0, canvas.width, canvas.height);
     
-    context.font = 'Bold 48px Cinzel';
+    context.font = 'Bold 48px Cinzel, serif';
     context.fillStyle = '#FFD700';
     context.textAlign = 'center';
     context.fillText(name, 256, 120);
     
-    context.font = '32px Inter';
+    context.font = '32px Inter, sans-serif';
     context.fillStyle = '#8B5CF6';
     context.fillText(subtitle, 256, 170);
     
@@ -649,15 +679,15 @@ function createCosmicBackground() {
 
 // Simple orbit controls
 function setupControls() {
-    let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
+    const canvas = renderer.domElement;
     
-    renderer.domElement.addEventListener('mousedown', (e) => {
+    canvas.addEventListener('mousedown', (e) => {
         isDragging = true;
         previousMousePosition = { x: e.clientX, y: e.clientY };
+        canvas.style.cursor = 'grabbing';
     });
     
-    renderer.domElement.addEventListener('mousemove', (e) => {
+    canvas.addEventListener('mousemove', (e) => {
         if (isDragging) {
             const deltaX = e.clientX - previousMousePosition.x;
             const deltaY = e.clientY - previousMousePosition.y;
@@ -691,12 +721,18 @@ function setupControls() {
         }
     });
     
-    renderer.domElement.addEventListener('mouseup', () => {
+    canvas.addEventListener('mouseup', () => {
         isDragging = false;
+        canvas.style.cursor = 'default';
+    });
+    
+    canvas.addEventListener('mouseleave', () => {
+        isDragging = false;
+        canvas.style.cursor = 'default';
     });
     
     // Zoom with mouse wheel
-    renderer.domElement.addEventListener('wheel', (e) => {
+    canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const zoomSpeed = 0.1;
         const direction = e.deltaY > 0 ? 1 : -1;
@@ -708,12 +744,16 @@ function setupControls() {
         const distance = camera.position.length();
         if (distance < 30) camera.position.multiplyScalar(30 / distance);
         if (distance > 150) camera.position.multiplyScalar(150 / distance);
+        
+        camera.lookAt(0, 15, 0);
     });
 }
 
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
+    
+    if (!scene || !camera || !renderer) return;
     
     const time = Date.now() * 0.001;
     
@@ -763,9 +803,11 @@ function animate() {
 
 // Handle mouse move for hover effect
 function onMouseMove(event) {
+    if (!raycaster || !camera) return;
+    
     // Calculate mouse position in normalized device coordinates
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    mouse.y = -(event.clientY / (window.innerHeight - 70)) * 2 + 1;
     
     // Update raycaster
     raycaster.setFromCamera(mouse, camera);
@@ -786,8 +828,10 @@ function onMouseMove(event) {
             INTERSECTED.material.emissiveIntensity = 0.8;
             
             // Update level indicator
-            document.querySelector('.level-name').textContent = object.userData.name;
-            document.querySelector('.level-desc').textContent = object.userData.subtitle;
+            const levelName = document.querySelector('.level-name');
+            const levelDesc = document.querySelector('.level-desc');
+            if (levelName) levelName.textContent = object.userData.name;
+            if (levelDesc) levelDesc.textContent = object.userData.subtitle;
             
             renderer.domElement.style.cursor = 'pointer';
         }
@@ -798,8 +842,10 @@ function onMouseMove(event) {
         INTERSECTED = null;
         renderer.domElement.style.cursor = 'default';
         
-        document.querySelector('.level-name').textContent = 'Exploring the Cosmos';
-        document.querySelector('.level-desc').textContent = 'Click on any sphere to explore';
+        const levelName = document.querySelector('.level-name');
+        const levelDesc = document.querySelector('.level-desc');
+        if (levelName) levelName.textContent = 'Exploring the Cosmos';
+        if (levelDesc) levelDesc.textContent = 'Click on any sphere to explore';
     }
 }
 
@@ -817,14 +863,15 @@ function showDetailPanel(levelData) {
     const detailTitle = document.getElementById('detail-title');
     const detailBody = document.getElementById('detail-body');
     
-    detailTitle.textContent = levelData.details.title;
-    detailBody.innerHTML = levelData.details.content;
-    
-    detailPanel.classList.add('active');
+    if (detailTitle) detailTitle.textContent = levelData.details.title;
+    if (detailBody) detailBody.innerHTML = levelData.details.content;
+    if (detailPanel) detailPanel.classList.add('active');
 }
 
 // Handle window resize
 function onWindowResize() {
+    if (!camera || !renderer) return;
+    
     camera.aspect = window.innerWidth / (window.innerHeight - 70);
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight - 70);
@@ -836,10 +883,12 @@ function onKeyDown(event) {
         case 'Space':
             event.preventDefault();
             isRotating = !isRotating;
-            document.querySelector('[data-action="auto-rotate"]').classList.toggle('active');
+            const btn = document.querySelector('[data-action="auto-rotate"]');
+            if (btn) btn.classList.toggle('active');
             break;
         case 'Escape':
-            document.getElementById('detail-panel').classList.remove('active');
+            const panel = document.getElementById('detail-panel');
+            if (panel) panel.classList.remove('active');
             break;
     }
 }
@@ -848,40 +897,65 @@ function onKeyDown(event) {
 function setupUIControls() {
     // Instructions
     const gotItBtn = document.getElementById('got-it');
-    gotItBtn.addEventListener('click', () => {
-        document.getElementById('instructions').classList.add('hidden');
-    });
+    if (gotItBtn) {
+        gotItBtn.addEventListener('click', () => {
+            const instructions = document.getElementById('instructions');
+            if (instructions) instructions.classList.add('hidden');
+        });
+    }
     
     // Close detail panel
-    document.getElementById('close-detail').addEventListener('click', () => {
-        document.getElementById('detail-panel').classList.remove('active');
-    });
+    const closeDetail = document.getElementById('close-detail');
+    if (closeDetail) {
+        closeDetail.addEventListener('click', () => {
+            const panel = document.getElementById('detail-panel');
+            if (panel) panel.classList.remove('active');
+        });
+    }
     
     // Nav buttons
-    document.querySelector('[data-action="reset"]').addEventListener('click', () => {
-        camera.position.set(0, 20, 70);
-        camera.lookAt(0, 15, 0);
-    });
+    const resetBtn = document.querySelector('[data-action="reset"]');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (camera) {
+                camera.position.set(0, 20, 70);
+                camera.lookAt(0, 15, 0);
+            }
+        });
+    }
     
-    document.querySelector('[data-action="auto-rotate"]').addEventListener('click', function() {
-        isRotating = !isRotating;
-        this.classList.toggle('active');
-    });
+    const autoRotateBtn = document.querySelector('[data-action="auto-rotate"]');
+    if (autoRotateBtn) {
+        autoRotateBtn.addEventListener('click', function() {
+            isRotating = !isRotating;
+            this.classList.toggle('active');
+        });
+    }
     
-    document.querySelector('[data-action="expand"]').addEventListener('click', () => {
-        // Zoom out to see everything
-        camera.position.set(0, 30, 120);
-        camera.lookAt(0, 15, 0);
-    });
+    const expandBtn = document.querySelector('[data-action="expand"]');
+    if (expandBtn) {
+        expandBtn.addEventListener('click', () => {
+            if (camera) {
+                camera.position.set(0, 30, 120);
+                camera.lookAt(0, 15, 0);
+            }
+        });
+    }
     
-    document.querySelector('[data-action="help"]').addEventListener('click', () => {
-        document.getElementById('instructions').classList.remove('hidden');
-    });
+    const helpBtn = document.querySelector('[data-action="help"]');
+    if (helpBtn) {
+        helpBtn.addEventListener('click', () => {
+            const instructions = document.getElementById('instructions');
+            if (instructions) instructions.classList.remove('hidden');
+        });
+    }
 }
 
 // Create minimap
 function createMinimap() {
     const svg = document.getElementById('mini-map-svg');
+    if (!svg) return;
+    
     const height = 400;
     const width = 200;
     const padding = 20;
@@ -924,19 +998,45 @@ function createMinimap() {
         
         circle.addEventListener('click', () => {
             // Focus camera on this level
-            const pos = level.position;
-            camera.position.set(pos.x + 30, pos.y + 20, pos.z + 30);
-            camera.lookAt(pos.x, pos.y, pos.z);
+            if (camera) {
+                const pos = level.position;
+                camera.position.set(pos.x + 30, pos.y + 20, pos.z + 30);
+                camera.lookAt(pos.x, pos.y, pos.z);
+            }
         });
         
         svg.appendChild(circle);
     });
 }
 
-// Initialize on load
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        document.getElementById('loading-screen').classList.add('hidden');
-        init();
-    }, 2000);
-});
+// Initialize when page loads
+function startApp() {
+    // Wait for Three.js to be available
+    if (typeof THREE === 'undefined') {
+        console.log('Waiting for Three.js to load...');
+        setTimeout(startApp, 100);
+        return;
+    }
+    
+    console.log('Three.js is ready, initializing...');
+    
+    // Wait for DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) loadingScreen.classList.add('hidden');
+                init();
+            }, 1000);
+        });
+    } else {
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) loadingScreen.classList.add('hidden');
+            init();
+        }, 1000);
+    }
+}
+
+// Start the app
+startApp();
