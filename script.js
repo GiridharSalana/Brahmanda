@@ -27,6 +27,14 @@ let toggleStates = {
     paths: true
 };
 
+// Advanced visual effects
+let advancedEffects = null;
+let sacredGeometries = [];
+let energyVortexes = [];
+let cosmicNebula = null;
+let dimensionalPortals = [];
+let cinematicMode = false;
+
 // Hierarchy data with detailed information
 const hierarchyData = [
     {
@@ -1278,8 +1286,11 @@ function setupControls() {
         // Only trigger click if mouse didn't move much (wasn't dragging)
         if (!hasMoved && mouseDownPosition) {
             // Update mouse position for raycasting
+            const navbar = document.querySelector('.navbar');
+            const navbarHeight = navbar ? navbar.offsetHeight : 70;
+            
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / (window.innerHeight - 70)) * 2 + 1;
+            mouse.y = -(e.clientY / (window.innerHeight - navbarHeight)) * 2 + 1;
             
             // Check for sphere intersection - prioritize main spheres first
             raycaster.setFromCamera(mouse, camera);
@@ -1559,8 +1570,11 @@ function onMouseMove(event) {
     if (!raycaster || !camera || isDragging) return;
     
     // Calculate mouse position in normalized device coordinates
+    const navbar = document.querySelector('.navbar');
+    const navbarHeight = navbar ? navbar.offsetHeight : 70;
+    
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / (window.innerHeight - 70)) * 2 + 1;
+    mouse.y = -(event.clientY / (window.innerHeight - navbarHeight)) * 2 + 1;
     
     // Update raycaster
     raycaster.setFromCamera(mouse, camera);
@@ -1600,25 +1614,13 @@ function onMouseMove(event) {
                 INTERSECTED.material.emissiveIntensity = 0.8;
             }
             
-            // Update level indicator
-            const levelName = document.querySelector('.level-name');
-            const levelDesc = document.querySelector('.level-desc');
+            // Show tooltip
             const tooltip = document.getElementById('tooltip');
-            
-            if (object.userData.name) {
-                if (levelName) levelName.textContent = object.userData.name;
-                if (levelDesc) {
-                    levelDesc.textContent = object.userData.subtitle || 
-                        (object.userData.type === 'loka' ? 'Click to zoom in' : 'Click to explore');
-                }
-                
-                // Show tooltip
-                if (tooltip) {
-                    tooltip.textContent = object.userData.name;
-                    tooltip.style.left = event.clientX + 10 + 'px';
-                    tooltip.style.top = event.clientY + 10 + 'px';
-                    tooltip.classList.add('visible');
-                }
+            if (object.userData.name && tooltip) {
+                tooltip.textContent = object.userData.name;
+                tooltip.style.left = event.clientX + 10 + 'px';
+                tooltip.style.top = event.clientY + 10 + 'px';
+                tooltip.classList.add('visible');
             }
             
             renderer.domElement.style.cursor = 'pointer';
@@ -1630,12 +1632,7 @@ function onMouseMove(event) {
         INTERSECTED = null;
         renderer.domElement.style.cursor = 'default';
         
-        const levelName = document.querySelector('.level-name');
-        const levelDesc = document.querySelector('.level-desc');
         const tooltip = document.getElementById('tooltip');
-        
-        if (levelName) levelName.textContent = 'Exploring the Cosmos';
-        if (levelDesc) levelDesc.textContent = 'Click on any sphere to explore';
         if (tooltip) tooltip.classList.remove('visible');
     }
 }
@@ -1667,7 +1664,6 @@ function onWindowResize() {
     const canvasContainer = document.getElementById('canvas-container');
     if (canvasContainer) {
         canvasContainer.style.height = `calc(100vh - ${navbarHeight}px)`;
-        canvasContainer.style.top = `${navbarHeight}px`;
     }
 }
 

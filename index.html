@@ -19,6 +19,33 @@
         </div>
     </div>
 
+    <!-- Main 3D Canvas -->
+    <div id="canvas-container"></div>
+    
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <!-- Detail Panel (shown when clicking on nodes) -->
+    <div class="detail-panel" id="detail-panel">
+        <button class="close-btn" id="close-detail">×</button>
+        <div class="detail-content">
+            <h2 id="detail-title"></h2>
+            <div id="detail-body"></div>
+        </div>
+    </div>
+
+    <!-- Instructions overlay -->
+    <div class="instructions" id="instructions">
+        <div class="instruction-content">
+            <h2>Welcome to Sanatan Cosmos</h2>
+            <p>🖱️ <strong>Left Click + Drag:</strong> Rotate view</p>
+            <p>🖱️ <strong>Scroll:</strong> Zoom in/out</p>
+            <p>👆 <strong>Click Sphere:</strong> View details</p>
+            <p>⌨️ <strong>Space:</strong> Toggle auto-rotate</p>
+            <button id="got-it">Begin Journey</button>
+        </div>
+    </div>
+
     <nav class="navbar">
         <div class="nav-brand">
             <span class="om">ॐ</span>
@@ -47,47 +74,15 @@
         </div>
     </nav>
 
-    <!-- Main 3D Canvas -->
-    <div id="canvas-container"></div>
-
-    <!-- Level indicator -->
-    <div class="level-indicator">
-        <div class="level-name">Exploring the Cosmos</div>
-        <div class="level-desc">Click on any sphere to explore</div>
-        <div class="level-hint">💡 Tip: Click Lokas to zoom in, click again to zoom out</div>
-    </div>
-    
-    <!-- Tooltip -->
-    <div class="tooltip" id="tooltip"></div>
-
-    <!-- Detail Panel (shown when clicking on nodes) -->
-    <div class="detail-panel" id="detail-panel">
-        <button class="close-btn" id="close-detail">×</button>
-        <div class="detail-content">
-            <h2 id="detail-title"></h2>
-            <div id="detail-body"></div>
-        </div>
-    </div>
-
-    <!-- Instructions overlay -->
-    <div class="instructions" id="instructions">
-        <div class="instruction-content">
-            <h2>Welcome to Sanatan Cosmos</h2>
-            <p>🖱️ <strong>Left Click + Drag:</strong> Rotate view</p>
-            <p>🖱️ <strong>Scroll:</strong> Zoom in/out</p>
-            <p>👆 <strong>Click Sphere:</strong> View details</p>
-            <p>⌨️ <strong>Space:</strong> Toggle auto-rotate</p>
-            <button id="got-it">Begin Journey</button>
-        </div>
-    </div>
-
-    <!-- Mini-map for navigation -->
-    <div class="mini-map">
-        <svg width="200" height="400" id="mini-map-svg"></svg>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
     <script src="audio-manager.js"></script>
+    <script src="advanced-effects.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -198,18 +198,18 @@ canvas {
 /* Navbar */
 .navbar {
     position: fixed;
-    top: 0;
+    bottom: 0;
     left: 0;
     right: 0;
     height: 70px;
-    background: rgba(26, 26, 46, 0.9);
+    background: rgba(26, 26, 46, 0.95);
     backdrop-filter: blur(20px);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 40px;
     z-index: 1000;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    border-top: 1px solid rgba(255, 215, 0, 0.2);
     gap: 20px;
     min-width: 0; /* Allow flex items to shrink */
 }
@@ -341,63 +341,20 @@ canvas {
 /* Canvas Container - Full Screen */
 #canvas-container {
     position: fixed;
-    top: 70px;
+    top: 0;
     left: 0;
     width: 100%;
     height: calc(100vh - 70px);
     z-index: 1;
 }
 
-@media (max-width: 768px) {
-    #canvas-container {
-        top: 70px;
-        height: calc(100vh - 70px);
-    }
-    
-    .navbar.active ~ #canvas-container {
-        top: auto;
-    }
-}
-
-/* Level Indicator */
-.level-indicator {
-    position: fixed;
-    top: 100px;
-    left: 40px;
-    background: rgba(26, 26, 46, 0.9);
-    backdrop-filter: blur(20px);
-    padding: 20px 30px;
-    border-radius: 15px;
-    border: 1px solid rgba(139, 92, 246, 0.4);
-    z-index: 100;
-    transition: all 0.3s;
-}
-
-.level-name {
-    font-family: 'Cinzel', serif;
-    font-size: 20px;
-    color: var(--text-gold);
-    margin-bottom: 5px;
-}
-
-.level-desc {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-    margin-top: 5px;
-}
-
-.level-hint {
-    font-size: 12px;
-    color: rgba(139, 92, 246, 0.8);
-    margin-top: 8px;
-    font-style: italic;
-}
+/* Level Indicator - REMOVED */
 
 /* Detail Panel */
 .detail-panel {
     position: fixed;
     right: -500px;
-    top: 70px;
+    top: 0;
     width: 480px;
     height: calc(100vh - 70px);
     background: rgba(26, 26, 46, 0.95);
@@ -551,18 +508,7 @@ canvas {
     box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
 }
 
-/* Mini-map */
-.mini-map {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background: rgba(26, 26, 46, 0.9);
-    backdrop-filter: blur(20px);
-    padding: 15px;
-    border-radius: 15px;
-    border: 1px solid rgba(139, 92, 246, 0.4);
-    z-index: 100;
-}
+/* Mini-map - REMOVED */
 
 /* Scrollbar for detail panel */
 .detail-panel::-webkit-scrollbar {
@@ -681,7 +627,7 @@ canvas {
         width: 100%;
         flex-direction: column;
         gap: 10px;
-        padding: 15px 0;
+        padding: 15px 0 0 0;
         border-top: 1px solid rgba(255, 215, 0, 0.2);
         margin-top: 10px;
         flex-shrink: 1;
@@ -718,40 +664,9 @@ canvas {
         min-width: calc(25% - 6px);
     }
     
-    .level-indicator {
-        left: 15px;
-        top: 90px;
-        padding: 12px 18px;
-        max-width: calc(100% - 30px);
-    }
-    
-    .level-name {
-        font-size: 16px;
-    }
-    
-    .level-desc {
-        font-size: 12px;
-    }
-    
-    .level-hint {
-        font-size: 11px;
-        margin-top: 6px;
-    }
-    
     .detail-panel {
         width: 100%;
         right: -100%;
-    }
-    
-    .mini-map {
-        bottom: 15px;
-        right: 15px;
-        padding: 10px;
-    }
-    
-    #mini-map-svg {
-        width: 120px;
-        height: 240px;
     }
     
     .tooltip {
@@ -771,16 +686,6 @@ canvas {
     
     .nav-brand .om {
         font-size: 20px;
-    }
-    
-    .level-indicator {
-        left: 10px;
-        right: 10px;
-        padding: 10px 15px;
-    }
-    
-    .mini-map {
-        display: none;
     }
 }
 
