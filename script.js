@@ -1405,7 +1405,11 @@ function setupControls() {
 function animate() {
     requestAnimationFrame(animate);
     
-    // Animate deity characters
+    if (!scene || !camera || !renderer) return;
+    
+    const time = Date.now() * 0.001;
+    
+    // Animate deity characters FIRST (highest priority)
     if (deityCharacters && deityCharacters.length > 0) {
         deityCharacters.forEach(deity => {
             if (deity && deity.userData && deity.userData.animate) {
@@ -1413,10 +1417,6 @@ function animate() {
             }
         });
     }
-    
-    if (!scene || !camera || !renderer) return;
-    
-    const time = Date.now() * 0.001;
     
     // Rotate spheres
     spheres.forEach((sphere, index) => {
