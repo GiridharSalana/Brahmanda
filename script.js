@@ -34,6 +34,7 @@ let energyVortexes = [];
 let cosmicNebula = null;
 let dimensionalPortals = [];
 let cinematicMode = false;
+let deityCharacters = []; // Store 3D deity models
 
 // Hierarchy data with detailed information
 const hierarchyData = [
@@ -1404,6 +1405,15 @@ function setupControls() {
 function animate() {
     requestAnimationFrame(animate);
     
+    // Animate deity characters
+    if (deityCharacters && deityCharacters.length > 0) {
+        deityCharacters.forEach(deity => {
+            if (deity && deity.userData && deity.userData.animate) {
+                deity.userData.animate(time);
+            }
+        });
+    }
+    
     if (!scene || !camera || !renderer) return;
     
     const time = Date.now() * 0.001;
@@ -1689,14 +1699,6 @@ function setupUIControls() {
         });
     }
     
-    // Instructions
-    const gotItBtn = document.getElementById('got-it');
-    if (gotItBtn) {
-        gotItBtn.addEventListener('click', () => {
-            const instructions = document.getElementById('instructions');
-            if (instructions) instructions.classList.add('hidden');
-        });
-    }
     
     // Close detail panel
     const closeDetail = document.getElementById('close-detail');
