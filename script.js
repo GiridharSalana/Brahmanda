@@ -412,7 +412,6 @@ function init() {
         
         // Event listeners
         window.addEventListener('resize', onWindowResize);
-        window.addEventListener('click', onClick);
         window.addEventListener('mousemove', onMouseMove);
         document.addEventListener('keydown', onKeyDown);
         
@@ -492,6 +491,7 @@ function createHierarchySpheres() {
             opacity: 0.3 
         });
         const wireframe = new THREE.LineSegments(wireframeGeo, wireframeMat);
+        wireframe.raycast = function() {}; // Disable raycasting for wireframe
         sphere.add(wireframe);
         
         // Add glow effect
@@ -536,6 +536,7 @@ function addGlowToSphere(mesh, color, radius) {
     });
     
     const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+    glowMesh.raycast = function() {}; // Disable raycasting for glow
     mesh.add(glowMesh);
 }
 
@@ -573,6 +574,7 @@ function createTextLabel(sphere, name, subtitle) {
     const sprite = new THREE.Sprite(spriteMaterial);
     sprite.scale.set(15, 7.5, 1);
     sprite.position.y = sphere.userData.radius + 5;
+    sprite.raycast = function() {}; // Disable raycasting for sprite
     
     sphere.add(sprite);
     textLabels.push(sprite);
@@ -680,54 +682,93 @@ function createCosmicBackground() {
 // Simple orbit controls
 function setupControls() {
     const canvas = renderer.domElement;
+    let mouseDownPosition = null;
+    let hasMoved = false;
     
     canvas.addEventListener('mousedown', (e) => {
+        mouseDownPosition = { x: e.clientX, y: e.clientY };
+        hasMoved = false;
         isDragging = true;
         previousMousePosition = { x: e.clientX, y: e.clientY };
         canvas.style.cursor = 'grabbing';
     });
     
     canvas.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-            const deltaX = e.clientX - previousMousePosition.x;
-            const deltaY = e.clientY - previousMousePosition.y;
+        if (isDragging && mouseDownPosition) {
+            const deltaX = Math.abs(e.clientX - mouseDownPosition.x);
+            const deltaY = Math.abs(e.clientY - mouseDownPosition.y);
             
-            // Rotate camera around center
-            const rotationSpeed = 0.005;
-            const phi = deltaX * rotationSpeed;
-            const theta = deltaY * rotationSpeed;
+            // Only consider it dragging if mouse moved more than 5 pixels
+            if (deltaX > 5 || deltaY > 5) {
+                hasMoved = true;
+            }
             
-            // Update camera position
-            const radius = Math.sqrt(
-                camera.position.x ** 2 + 
-                camera.position.y ** 2 + 
-                camera.position.z ** 2
-            );
-            
-            // Spherical coordinates
-            let currentPhi = Math.atan2(camera.position.z, camera.position.x);
-            let currentTheta = Math.acos(camera.position.y / radius);
-            
-            currentPhi -= phi;
-            currentTheta = Math.max(0.1, Math.min(Math.PI - 0.1, currentTheta - theta));
-            
-            camera.position.x = radius * Math.sin(currentTheta) * Math.cos(currentPhi);
-            camera.position.y = radius * Math.cos(currentTheta);
-            camera.position.z = radius * Math.sin(currentTheta) * Math.sin(currentPhi);
-            
-            camera.lookAt(0, 15, 0);
-            
-            previousMousePosition = { x: e.clientX, y: e.clientY };
+            if (hasMoved) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                // Rotate camera around center
+                const rotationSpeed = 0.005;
+                const phi = deltaX * rotationSpeed;
+                const theta = deltaY * rotationSpeed;
+                
+                // Update camera position
+                const radius = Math.sqrt(
+                    camera.position.x ** 2 + 
+                    camera.position.y ** 2 + 
+                    camera.position.z ** 2
+                );
+                
+                // Spherical coordinates
+                let currentPhi = Math.atan2(camera.position.z, camera.position.x);
+                let currentTheta = Math.acos(camera.position.y / radius);
+                
+                currentPhi -= phi;
+                currentTheta = Math.max(0.1, Math.min(Math.PI - 0.1, currentTheta - theta));
+                
+                camera.position.x = radius * Math.sin(currentTheta) * Math.cos(currentPhi);
+                camera.position.y = radius * Math.cos(currentTheta);
+                camera.position.z = radius * Math.sin(currentTheta) * Math.sin(currentPhi);
+                
+                camera.lookAt(0, 15, 0);
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
         }
     });
     
-    canvas.addEventListener('mouseup', () => {
+    canvas.addEventListener('mouseup', (e) => {
+        // Only trigger click if mouse didn't move much (wasn't dragging)
+        if (!hasMoved && mouseDownPosition) {
+            // Update mouse position for raycasting
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / (window.innerHeight - 70)) * 2 + 1;
+            
+            // Check for sphere intersection - only check main spheres
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(spheres, false);
+            
+            if (intersects.length > 0) {
+                const sphere = intersects[0].object;
+                
+                // Make sure it's a main sphere with userData
+                if (sphere.userData && sphere.userData.name) {
+                    selectedSphere = sphere;
+                    showDetailPanel(sphere.userData);
+                }
+            }
+        }
+        
         isDragging = false;
+        hasMoved = false;
+        mouseDownPosition = null;
         canvas.style.cursor = 'default';
     });
     
     canvas.addEventListener('mouseleave', () => {
         isDragging = false;
+        hasMoved = false;
+        mouseDownPosition = null;
         canvas.style.cursor = 'default';
     });
     
@@ -803,7 +844,7 @@ function animate() {
 
 // Handle mouse move for hover effect
 function onMouseMove(event) {
-    if (!raycaster || !camera) return;
+    if (!raycaster || !camera || isDragging) return;
     
     // Calculate mouse position in normalized device coordinates
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -812,28 +853,31 @@ function onMouseMove(event) {
     // Update raycaster
     raycaster.setFromCamera(mouse, camera);
     
-    // Check for intersections
-    const intersects = raycaster.intersectObjects(spheres);
+    // Check for intersections - only check main spheres, not children
+    const intersects = raycaster.intersectObjects(spheres, false);
     
     if (intersects.length > 0) {
         const object = intersects[0].object;
         
-        if (INTERSECTED !== object) {
-            // Restore previous object
-            if (INTERSECTED) {
-                INTERSECTED.material.emissiveIntensity = 0.4;
+        // Make sure it's a main sphere, not a child
+        if (object.userData && object.userData.name) {
+            if (INTERSECTED !== object) {
+                // Restore previous object
+                if (INTERSECTED) {
+                    INTERSECTED.material.emissiveIntensity = 0.4;
+                }
+                
+                INTERSECTED = object;
+                INTERSECTED.material.emissiveIntensity = 0.8;
+                
+                // Update level indicator
+                const levelName = document.querySelector('.level-name');
+                const levelDesc = document.querySelector('.level-desc');
+                if (levelName) levelName.textContent = object.userData.name;
+                if (levelDesc) levelDesc.textContent = object.userData.subtitle;
+                
+                renderer.domElement.style.cursor = 'pointer';
             }
-            
-            INTERSECTED = object;
-            INTERSECTED.material.emissiveIntensity = 0.8;
-            
-            // Update level indicator
-            const levelName = document.querySelector('.level-name');
-            const levelDesc = document.querySelector('.level-desc');
-            if (levelName) levelName.textContent = object.userData.name;
-            if (levelDesc) levelDesc.textContent = object.userData.subtitle;
-            
-            renderer.domElement.style.cursor = 'pointer';
         }
     } else {
         if (INTERSECTED) {
@@ -846,14 +890,6 @@ function onMouseMove(event) {
         const levelDesc = document.querySelector('.level-desc');
         if (levelName) levelName.textContent = 'Exploring the Cosmos';
         if (levelDesc) levelDesc.textContent = 'Click on any sphere to explore';
-    }
-}
-
-// Handle click
-function onClick(event) {
-    if (INTERSECTED) {
-        selectedSphere = INTERSECTED;
-        showDetailPanel(selectedSphere.userData);
     }
 }
 
