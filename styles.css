@@ -210,12 +210,17 @@ canvas {
     padding: 0 40px;
     z-index: 1000;
     border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    gap: 20px;
+    min-width: 0; /* Allow flex items to shrink */
 }
 
 .nav-brand {
     display: flex;
     align-items: center;
     gap: 15px;
+    flex-shrink: 0; /* Prevent logo from shrinking */
+    min-width: 0;
+    white-space: nowrap;
 }
 
 .nav-brand .om {
@@ -236,19 +241,28 @@ canvas {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
 }
 
 .nav-links {
     display: flex;
     gap: 10px;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: visible;
+    justify-content: flex-end;
+    max-width: calc(100% - 250px);
 }
 
 .nav-group {
     display: flex;
     gap: 8px;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .toggles-group {
@@ -569,19 +583,68 @@ canvas {
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
+    .navbar {
+        padding: 0 30px;
+        gap: 15px;
+    }
+    
+    .nav-brand .title {
+        font-size: 20px;
+        letter-spacing: 2px;
+        max-width: 250px;
+    }
+    
     .nav-links {
-        gap: 8px;
+        gap: 6px;
+        max-width: calc(100% - 220px);
     }
     
     .nav-links button {
-        padding: 8px 14px;
-        font-size: 13px;
+        padding: 8px 12px;
+        font-size: 12px;
     }
     
     .toggles-group {
-        padding: 0 8px;
-        margin: 0 3px;
+        padding: 0 6px;
+        margin: 0 2px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .navbar {
+        padding: 0 25px;
+        gap: 12px;
+    }
+    
+    .nav-brand .title {
+        font-size: 18px;
+        letter-spacing: 1.5px;
+        max-width: 200px;
+    }
+    
+    .nav-brand .om {
+        font-size: 30px;
+    }
+    
+    .nav-links {
+        gap: 5px;
+        max-width: calc(100% - 180px);
+    }
+    
+    .nav-links button {
+        padding: 7px 10px;
+        font-size: 11px;
+    }
+    
+    .toggle-btn {
+        padding: 7px 8px;
+        font-size: 10px;
+    }
+    
+    .toggles-group {
+        padding: 0 5px;
+        margin: 0 2px;
     }
 }
 
@@ -591,10 +654,17 @@ canvas {
         flex-wrap: wrap;
         height: auto;
         min-height: 70px;
+        gap: 10px;
+    }
+    
+    .nav-brand {
+        flex: 1;
+        min-width: 0;
     }
     
     .mobile-menu-toggle {
         display: flex;
+        flex-shrink: 0;
     }
     
     .nav-brand .title {
@@ -614,6 +684,7 @@ canvas {
         padding: 15px 0;
         border-top: 1px solid rgba(255, 215, 0, 0.2);
         margin-top: 10px;
+        flex-shrink: 1;
     }
     
     .nav-links.active {
