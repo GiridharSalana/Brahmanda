@@ -1,86 +1,18 @@
 /**
  * BRAHMANDA — The Cosmic Egg
- * A 3D journey through Sanatan Hindu Philosophy
- * Built with Three.js r160, custom GLSL shaders, bloom post-processing
+ * Redesigned: one scene at a time, one focal point, done beautifully.
+ * Three.js r160 · Custom GLSL · UnrealBloom · View-based visibility
  */
 
 import * as THREE from 'three';
-import { OrbitControls }    from 'three/addons/controls/OrbitControls.js';
-import { EffectComposer }   from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass }       from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass }  from 'three/addons/postprocessing/UnrealBloomPass.js';
-// OutputPass intentionally omitted — ACESFilmic on renderer handles final output
+import { OrbitControls }   from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer }  from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 // ═══════════════════════════════════════════════════════════════
-// GLSL SHADERS
+// GLSL — Para Brahman Divine Orb
 // ═══════════════════════════════════════════════════════════════
-
-// ── Galaxy / Nebula Background ──────────────────────────────────
-const GALAXY_VERT = /* glsl */`
-  varying vec3 vWorldPos;
-  void main() {
-    vec4 wp = modelMatrix * vec4(position, 1.0);
-    vWorldPos = wp.xyz;
-    gl_Position = projectionMatrix * viewMatrix * wp;
-  }
-`;
-
-const GALAXY_FRAG = /* glsl */`
-  uniform float uTime;
-  varying vec3 vWorldPos;
-
-  vec3 h3(vec3 p) {
-    p = vec3(dot(p,vec3(127.1,311.7,74.7)),
-             dot(p,vec3(269.5,183.3,246.1)),
-             dot(p,vec3(113.5,271.9,124.6)));
-    return -1.0 + 2.0*fract(sin(p)*43758.5453);
-  }
-  float vn(vec3 p) {
-    vec3 i=floor(p); vec3 f=fract(p); vec3 u=f*f*(3.0-2.0*f);
-    return mix(mix(mix(dot(h3(i),f),dot(h3(i+vec3(1,0,0)),f-vec3(1,0,0)),u.x),
-                   mix(dot(h3(i+vec3(0,1,0)),f-vec3(0,1,0)),dot(h3(i+vec3(1,1,0)),f-vec3(1,1,0)),u.x),u.y),
-               mix(mix(dot(h3(i+vec3(0,0,1)),f-vec3(0,0,1)),dot(h3(i+vec3(1,0,1)),f-vec3(1,0,1)),u.x),
-                   mix(dot(h3(i+vec3(0,1,1)),f-vec3(0,1,1)),dot(h3(i+vec3(1,1,1)),f-vec3(1,1,1)),u.x),u.y),u.z);
-  }
-  float fbm(vec3 p) {
-    float v=0.0,a=0.5;
-    for(int i=0;i<6;i++){v+=a*vn(p);p*=2.2;a*=0.5;}
-    return v;
-  }
-  void main() {
-    vec3 d = normalize(vWorldPos);
-    float n1 = fbm(d*2.5 + vec3(uTime*0.006));
-    float n2 = fbm(d*5.0 - vec3(uTime*0.004));
-    float n3 = vn(d*18.0);
-
-    float phi  = atan(d.z, d.x);
-    float arm  = 0.5 + 0.5*sin(phi*2.0 + n1*5.0 + uTime*0.008);
-    float arm2 = 0.5 + 0.5*sin(phi*3.0 - n1*3.0 - uTime*0.005);
-
-    vec3 void_  = vec3(0.008, 0.000, 0.045);
-    vec3 neb1   = vec3(0.090, 0.020, 0.220);
-    vec3 neb2   = vec3(0.260, 0.060, 0.480);
-    vec3 golden = vec3(0.380, 0.220, 0.010);
-    vec3 starC  = vec3(0.900, 0.850, 0.750);
-
-    float nv = (n1+1.0)*0.5;
-    float nv2= (n2+1.0)*0.5;
-
-    vec3 col = void_;
-    col = mix(col, neb1, smoothstep(0.35,0.65,nv));
-    col = mix(col, neb2, arm*nv2*0.55);
-    col += golden * arm2 * 0.28;
-    col += golden * 0.08;
-
-    // star sparkles
-    float st = max(0.0, n3*16.0 - 14.8);
-    col += starC * st * 0.7;
-
-    gl_FragColor = vec4(col, 1.0);
-  }
-`;
-
-// ── Para Brahman (animated divine orb) ─────────────────────────
 const BRAHMAN_VERT = /* glsl */`
   varying vec3 vPos;
   varying vec3 vNorm;
@@ -111,33 +43,30 @@ const BRAHMAN_FRAG = /* glsl */`
   }
 
   void main() {
-    float n1 = vn(vPos*0.7 + vec3(uTime*0.11));
-    float n2 = vn(vPos*1.8 - vec3(uTime*0.08));
-    float n3 = vn(vPos*4.2 + vec3(uTime*0.17));
-    float n4 = vn(vPos*9.0 - vec3(uTime*0.06));
+    float n1 = vn(vPos*0.7 + vec3(uTime*0.09));
+    float n2 = vn(vPos*1.8 - vec3(uTime*0.06));
+    float n3 = vn(vPos*4.0 + vec3(uTime*0.13));
+    float n4 = vn(vPos*8.5 - vec3(uTime*0.05));
 
     float c = (n1*0.50 + n2*0.28 + n3*0.14 + n4*0.08 + 1.0)*0.5;
 
-    // HDR colors — intentionally > 1 to trigger bloom on Para Brahman only
-    vec3 deep  = vec3(1.2, 0.25, 0.00);
-    vec3 saff  = vec3(1.8, 0.75, 0.08);
-    vec3 gold  = vec3(2.2, 1.60, 0.30);
-    vec3 white = vec3(2.8, 2.50, 1.80);
+    // HDR — values > 1 trigger bloom on Para Brahman only
+    vec3 deep  = vec3(1.0, 0.20, 0.00);
+    vec3 saff  = vec3(1.6, 0.65, 0.05);
+    vec3 gold  = vec3(2.0, 1.50, 0.25);
+    vec3 white = vec3(2.5, 2.20, 1.60);
 
     vec3 col = mix(deep, saff, c);
-    col = mix(col, gold,  pow(c,1.6));
-    col = mix(col, white, pow(c,3.2));
+    col = mix(col, gold,  pow(c, 1.6));
+    col = mix(col, white, pow(c, 3.4));
 
-    // Rim glow
     float rim = 1.0 - abs(dot(normalize(vNorm), vec3(0,0,1)));
-    col += white * pow(rim,2.0) * 0.4;
+    col += white * pow(rim, 2.2) * 0.35;
 
-    // Solar flares
-    float flare = max(0.0, vn(vPos*3.0 + vec3(uTime*0.28)) - 0.25)*2.5;
-    col += white * flare * 0.8;
+    float flare = max(0.0, vn(vPos*2.8 + vec3(uTime*0.24)) - 0.28) * 2.2;
+    col += white * flare * 0.65;
 
-    // Pulse
-    col *= 0.87 + 0.13*sin(uTime*1.7);
+    col *= 0.88 + 0.12*sin(uTime*1.6);
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -257,46 +186,69 @@ const DATA = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// CAMERA VIEWS
+// CAMERA VIEWS  (all centered near origin for each group)
 // ═══════════════════════════════════════════════════════════════
 const VIEWS = {
-  cosmos:   { pos: new THREE.Vector3(0, 80, 450),  look: new THREE.Vector3(0, 70, 0) },
-  trimurti: { pos: new THREE.Vector3(0, 130, 170), look: new THREE.Vector3(0, 120, 0) },
-  lokas:    { pos: new THREE.Vector3(300, 55, 0),  look: new THREE.Vector3(0, 55, 0) },
-  chakras:  { pos: new THREE.Vector3(100, 55, 0),  look: new THREE.Vector3(0, 55, 0) },
-  yugas:    { pos: new THREE.Vector3(0, 340, 240), look: new THREE.Vector3(0, 285, 0) }
+  cosmos:   { pos: new THREE.Vector3(0,  30, 360),  look: new THREE.Vector3(0,  0, 0) },
+  trimurti: { pos: new THREE.Vector3(0,  20, 240),  look: new THREE.Vector3(0,  0, 0) },
+  lokas:    { pos: new THREE.Vector3(240, 0, 120),  look: new THREE.Vector3(0,  0, 0) },
+  chakras:  { pos: new THREE.Vector3(90,  0, 170),  look: new THREE.Vector3(0,  0, 0) },
+  yugas:    { pos: new THREE.Vector3(0,  280, 210), look: new THREE.Vector3(0,  0, 0) }
 };
 
 const TOUR_STOPS = [
-  { view:'cosmos',   wait:6000 },
-  { view:'trimurti', wait:6000 },
-  { view:'lokas',    wait:7000 },
-  { view:'chakras',  wait:6000 },
-  { view:'yugas',    wait:6000 }
+  { view:'cosmos',   wait:7000 },
+  { view:'trimurti', wait:7000 },
+  { view:'lokas',    wait:8000 },
+  { view:'chakras',  wait:7000 },
+  { view:'yugas',    wait:7000 }
 ];
 
 // ═══════════════════════════════════════════════════════════════
 // GLOBALS
 // ═══════════════════════════════════════════════════════════════
 let scene, camera, renderer, composer, controls;
-let uTime = 0;
-let clickables = [];     // { mesh, data }
-let animatables = [];    // fn(t)
-let particles;
+let uTime      = 0;
+let clickables = [];
+let animatables= [];
+
+// ── Scene Groups — show only what's relevant per view ──────────
+const GROUPS = {};
+function getGroup(name) {
+  if (!GROUPS[name]) {
+    GROUPS[name] = new THREE.Group();
+    scene.add(GROUPS[name]);
+  }
+  return GROUPS[name];
+}
+
+function setViewObjects(viewName) {
+  const showMap = {
+    cosmos:   ['cosmos', 'stars'],
+    trimurti: ['trimurti', 'stars'],
+    lokas:    ['lokas', 'stars'],
+    chakras:  ['chakras', 'stars'],
+    yugas:    ['yugas', 'stars'],
+  };
+  const show = new Set(showMap[viewName] || ['stars']);
+  Object.entries(GROUPS).forEach(([key, grp]) => {
+    grp.visible = show.has(key);
+  });
+}
 
 // Transition state
-let transActive = false;
-let transStart  = 0;
-let transDur    = 2200;
-let transFrom   = new THREE.Vector3();
-let transTo     = new THREE.Vector3();
+let transActive   = false;
+let transStart    = 0;
+const transDur    = 2400;
+let transFrom     = new THREE.Vector3();
+let transTo       = new THREE.Vector3();
 let transLookFrom = new THREE.Vector3();
 let transLookTo   = new THREE.Vector3();
 
 // Tour
 let tourActive = false;
-let tourIdx = 0;
-let tourTimer = null;
+let tourIdx    = 0;
+let tourTimer  = null;
 
 // ═══════════════════════════════════════════════════════════════
 // ENTRY POINT
@@ -327,32 +279,28 @@ function setupRenderer() {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.9;
+  renderer.toneMappingExposure = 1.0;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 }
 
 function setupScene() {
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x030007, 0.0004);
+  scene.background = new THREE.Color(0x000005);
+  scene.fog = new THREE.FogExp2(0x000005, 0.00025);
 
-  // Warm white ambient so all objects are visible
-  scene.add(new THREE.AmbientLight(0xffeedd, 1.8));
+  scene.add(new THREE.AmbientLight(0xfff5e0, 1.4));
 
-  const sun = new THREE.DirectionalLight(0xFFD700, 2.0);
-  sun.position.set(50, 300, 100);
+  const sun = new THREE.DirectionalLight(0xFFD700, 1.8);
+  sun.position.set(50, 200, 100);
   scene.add(sun);
 
-  const fill = new THREE.DirectionalLight(0x8844FF, 0.8);
+  const fill = new THREE.DirectionalLight(0x7744AA, 0.5);
   fill.position.set(-100, 50, -100);
   scene.add(fill);
-
-  const rim = new THREE.DirectionalLight(0xFF6600, 0.5);
-  rim.position.set(0, -100, 200);
-  scene.add(rim);
 }
 
 function setupCamera() {
-  camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 1, 3000);
+  camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 1, 3000);
   camera.position.copy(VIEWS.cosmos.pos);
   camera.lookAt(VIEWS.cosmos.look);
 }
@@ -363,301 +311,246 @@ function setupComposer() {
 
   const bloom = new UnrealBloomPass(
     new THREE.Vector2(innerWidth, innerHeight),
-    0.75,  // strength  — reduced so regular objects don't get washed out
-    0.5,   // radius
-    0.60   // threshold — only truly bright HDR objects (Para Brahman) bloom
+    0.55,  // strength — soft, only HDR objects glow
+    0.45,  // radius
+    0.68   // threshold — very selective
   );
   composer.addPass(bloom);
-  // OutputPass skipped intentionally — ACESFilmic on renderer handles tone mapping
 }
 
 function setupControls() {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping   = true;
-  controls.dampingFactor   = 0.06;
+  controls.dampingFactor   = 0.055;
   controls.target.copy(VIEWS.cosmos.look);
-  controls.minDistance     = 40;
-  controls.maxDistance     = 900;
+  controls.minDistance     = 50;
+  controls.maxDistance     = 800;
   controls.enablePan       = false;
   controls.autoRotate      = true;
-  controls.autoRotateSpeed = 0.2;
-  controls.minPolarAngle   = 0.2;   // prevent going fully overhead
-  controls.maxPolarAngle   = Math.PI * 0.85;
+  controls.autoRotateSpeed = 0.18;
+  controls.minPolarAngle   = 0.25;
+  controls.maxPolarAngle   = Math.PI * 0.82;
 }
 
 // ═══════════════════════════════════════════════════════════════
 // BUILD THE UNIVERSE
 // ═══════════════════════════════════════════════════════════════
 function buildUniverse() {
-  createGalaxy();
-  createParaBrahman();
-  createEnergyBeam();
-  createKalachakra();
-  createTrimurti();
-  createLokas();
-  createSriYantraFloor();
-  createChakraColumn();
-  createSheshaNaga();
-  createSoulParticles();
-  createNavagrahas();
+  createStarfield();     // always visible background
+  createParaBrahman();   // cosmos group
+  createSoulParticles(); // cosmos group
+  createTrimurti();      // trimurti group
+  createLokas();         // lokas group
+  createSriYantraFloor();// lokas group
+  createChakraColumn();  // chakras group
+  createSheshaNaga();    // chakras group
+  createKalachakra();    // yugas group
+
+  // Start in cosmos view
+  setViewObjects('cosmos');
 }
 
-// ── Galaxy Nebula Background ─────────────────────────────────
-function createGalaxy() {
-  const geo = new THREE.SphereGeometry(1400, 48, 48);
-  const mat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 } },
-    vertexShader:   GALAXY_VERT,
-    fragmentShader: GALAXY_FRAG,
-    side: THREE.BackSide,
+// ── Static Starfield (replaces animated galaxy shader) ────────
+function createStarfield() {
+  const count = 5000;
+  const pos   = new Float32Array(count * 3);
+
+  for (let i = 0; i < count; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2 * Math.random() - 1);
+    const r     = 700 + Math.random() * 400;
+    pos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    pos[i*3+2] = r * Math.cos(phi);
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+  const mat = new THREE.PointsMaterial({
+    color: 0xFFFFFF,
+    size: 1.4,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.55,
+    blending: THREE.AdditiveBlending,
     depthWrite: false
   });
-  const mesh = new THREE.Mesh(geo, mat);
-  scene.add(mesh);
-  animatables.push(t => { mat.uniforms.uTime.value = t; });
+
+  getGroup('stars').add(new THREE.Points(geo, mat));
 }
 
-// ── Para Brahman ──────────────────────────────────────────────
+// ── Para Brahman — The Infinite ───────────────────────────────
 function createParaBrahman() {
-  const Y = 255;
+  const grp = getGroup('cosmos');
 
-  // Core orb with custom shader
-  const geo = new THREE.SphereGeometry(9, 64, 64);
+  // Core orb
+  const geo = new THREE.SphereGeometry(10, 64, 64);
   const mat = new THREE.ShaderMaterial({
     uniforms: { uTime: { value: 0 } },
     vertexShader:   BRAHMAN_VERT,
     fragmentShader: BRAHMAN_FRAG
   });
   const core = new THREE.Mesh(geo, mat);
-  core.position.set(0, Y, 0);
-  scene.add(core);
+  grp.add(core);
+  clickables.push({ mesh: core, data: DATA.paraBrahman, label: 'Para Brahman' });
   animatables.push(t => {
     mat.uniforms.uTime.value = t;
-    core.rotation.y = t * 0.04;
+    core.rotation.y = t * 0.035;
   });
 
-  // Make it clickable
-  const cData = DATA.paraBrahman;
-  clickables.push({ mesh: core, data: cData, label: 'Para Brahman' });
-
-  // Multi-layer glow halos
-  [14, 22, 33, 48, 70].forEach((r, i) => {
-    const g = new THREE.SphereGeometry(r, 32, 32);
-    const m = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(1.0, 0.85 - i * 0.1, 0.1),
+  // Two soft halos (not five)
+  [{ r: 18, op: 0.08 }, { r: 32, op: 0.04 }].forEach(({ r, op }, i) => {
+    const hGeo = new THREE.SphereGeometry(r, 32, 32);
+    const hMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(1.0, 0.75, 0.1),
       transparent: true,
-      opacity: 0.1 / (i + 1),
+      opacity: op,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       side: THREE.BackSide
     });
-    const halo = new THREE.Mesh(g, m);
-    halo.position.set(0, Y, 0);
-    scene.add(halo);
+    const halo = new THREE.Mesh(hGeo, hMat);
+    grp.add(halo);
     animatables.push(t => {
-      const s = 1 + 0.05 * Math.sin(t * 1.2 + i * 0.8);
+      const s = 1 + 0.04 * Math.sin(t * 1.1 + i * 1.2);
       halo.scale.setScalar(s);
     });
   });
 
-  // Om label above
-  const omSprite = makeLabel('ॐ', 'Para Brahman', '#FFFFFF', 340, 90);
-  omSprite.position.set(0, Y + 18, 0);
-  omSprite.scale.set(28, 10, 1);
-  scene.add(omSprite);
+  // OM label
+  const lbl = makeLabel('ॐ', 'Para Brahman', '#FFD700', 340, 90);
+  lbl.position.set(0, 18, 0);
+  lbl.scale.set(28, 10, 1);
+  grp.add(lbl);
 }
 
-// ── Central Energy Beam ───────────────────────────────────────
-function createEnergyBeam() {
-  const height = 220;
-  const geo = new THREE.CylinderGeometry(0.8, 2.5, height, 8, 1, true);
-  const mat = new THREE.MeshBasicMaterial({
-    color: 0xFFCC00,
-    transparent: true,
-    opacity: 0.06,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide
-  });
-  const beam = new THREE.Mesh(geo, mat);
-  beam.position.set(0, 255 - height / 2, 0);
-  scene.add(beam);
+// ── Soul Particles — Jivas orbiting Brahman ───────────────────
+function createSoulParticles() {
+  const grp   = getGroup('cosmos');
+  const count = 400;
+  const pos   = new Float32Array(count * 3);
+  const spd   = new Float32Array(count);
+  const orb   = new Float32Array(count);
 
-  // Inner tighter beam
-  const geo2 = new THREE.CylinderGeometry(0.2, 0.8, height, 6, 1, true);
-  const mat2 = new THREE.MeshBasicMaterial({
-    color: 0xFFFFAA,
+  for (let i = 0; i < count; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2 * Math.random() - 1);
+    const r     = 35 + Math.random() * 100;
+    pos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    pos[i*3+2] = r * Math.cos(phi);
+    spd[i]  = 0.15 + Math.random() * 0.45;
+    orb[i]  = r;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+  const mat = new THREE.PointsMaterial({
+    color: 0xFFEECC,
+    size: 0.8,
     transparent: true,
     opacity: 0.12,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
-    side: THREE.DoubleSide
+    sizeAttenuation: true
   });
-  const beam2 = new THREE.Mesh(geo2, mat2);
-  beam2.position.set(0, 255 - height / 2, 0);
-  scene.add(beam2);
+
+  const pts = new THREE.Points(geo, mat);
+  grp.add(pts);
 
   animatables.push(t => {
-    const p = 0.9 + 0.1 * Math.sin(t * 1.1);
-    mat.opacity  = 0.06 * p;
-    mat2.opacity = 0.12 * p;
-  });
-}
-
-// ── Kalachakra — Wheel of Time ────────────────────────────────
-function createKalachakra() {
-  const Y = 285;
-  const R = 90;
-
-  // Outer ring
-  const ringGeo = new THREE.TorusGeometry(R, 2, 8, 80);
-  const ringMat = new THREE.MeshStandardMaterial({
-    color: 0xFFD700, emissive: 0xFF8800, emissiveIntensity: 0.7,
-    roughness: 0.2, metalness: 0.9
-  });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI / 2;
-  ring.position.y = Y;
-  scene.add(ring);
-
-  // 4 yuga segments
-  const yugaColors = [
-    { c: 0xFFFFCC, e: 0xFFDD00, name: 'satyaYugaSeg' },   // Satya — gold-white
-    { c: 0xDDDDCC, e: 0xAAAAAA, name: 'tretaYugaSeg' },   // Treta — silver
-    { c: 0xCC9966, e: 0xFF6600, name: 'dwaparaYugaSeg' }, // Dwapara — bronze/copper
-    { c: 0x444455, e: 0x2222AA, name: 'kaliYugaSeg' }     // Kali — iron/dark
-  ];
-  const yugaKeys = ['satya', 'treta', 'dwapara', 'kali'];
-
-  for (let i = 0; i < 4; i++) {
-    const angle = (i / 4) * Math.PI * 2;
-    const arc = new THREE.TorusGeometry(R * 0.6, 10, 6, 20, Math.PI * 0.4);
-    const m = new THREE.MeshStandardMaterial({
-      color: yugaColors[i].c,
-      emissive: yugaColors[i].e,
-      emissiveIntensity: 0.5,
-      roughness: 0.4,
-      transparent: true,
-      opacity: 0.85
-    });
-    const seg = new THREE.Mesh(arc, m);
-    seg.rotation.x = Math.PI / 2;
-    seg.rotation.z = angle + Math.PI * 0.1;
-    seg.position.y = Y;
-    scene.add(seg);
-    clickables.push({ mesh: seg, data: DATA.yugas[yugaKeys[i]], label: yugaKeys[i].charAt(0).toUpperCase() + yugaKeys[i].slice(1) + ' Yuga' });
-  }
-
-  // Spokes
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2;
-    const spokeGeo = new THREE.CylinderGeometry(0.4, 0.4, R - 10, 6);
-    const spokeMat = new THREE.MeshStandardMaterial({
-      color: 0xFFD700, emissive: 0xFF8800, emissiveIntensity: 0.4, roughness: 0.3
-    });
-    const spoke = new THREE.Mesh(spokeGeo, spokeMat);
-    spoke.position.set(
-      Math.cos(a) * (R - 10) / 2,
-      Y,
-      Math.sin(a) * (R - 10) / 2
-    );
-    spoke.rotation.z = Math.PI / 2;
-    spoke.rotation.y = -a;
-    scene.add(spoke);
-  }
-
-  // Hub
-  const hubGeo = new THREE.SphereGeometry(8, 16, 16);
-  const hubMat = new THREE.MeshStandardMaterial({
-    color: 0xFFD700, emissive: 0xFFAA00, emissiveIntensity: 1,
-    roughness: 0.1, metalness: 1
-  });
-  const hub = new THREE.Mesh(hubGeo, hubMat);
-  hub.position.set(0, Y, 0);
-  scene.add(hub);
-  clickables.push({ mesh: hub, data: DATA.kalachakra, label: 'Kalachakra' });
-
-  // Label
-  const lbl = makeLabel('KALACHAKRA', 'कालचक्र', '#FFD700', 440, 80);
-  lbl.position.set(0, Y + R + 16, 0);
-  lbl.scale.set(32, 7, 1);
-  scene.add(lbl);
-
-  animatables.push(t => {
-    ring.rotation.z = t * 0.08;
+    const pa = geo.attributes.position;
+    for (let i = 0; i < count; i++) {
+      const x  = pa.getX(i);
+      const z  = pa.getZ(i);
+      const ang = Math.atan2(z, x) + spd[i] * 0.002;
+      const r  = orb[i];
+      pa.setX(i, Math.cos(ang) * r);
+      pa.setZ(i, Math.sin(ang) * r);
+    }
+    pa.needsUpdate = true;
+    mat.opacity = 0.10 + 0.04 * Math.sin(t * 0.5);
   });
 }
 
 // ── Trimurti ──────────────────────────────────────────────────
 function createTrimurti() {
-  const Y = 120;
-  makeBrahma(new THREE.Vector3(-72, Y, 0));
-  makeVishnu(new THREE.Vector3(0,   Y, 72));
-  makeShiva (new THREE.Vector3(72,  Y, 0));
+  makeBrahma(new THREE.Vector3(-88, 0, 0));
+  makeVishnu (new THREE.Vector3(  0, 0, 88));
+  makeShiva  (new THREE.Vector3( 88, 0, 0));
 }
 
 function makeBrahma(pos) {
-  const g = new THREE.Group();
+  const grp = getGroup('trimurti');
+  const g   = new THREE.Group();
   g.position.copy(pos);
 
-  const gold   = { color: 0xFFD700, emissive: 0xFF8800, emissiveIntensity: 0.6, roughness: 0.2, metalness: 0.9 };
-  const skinG  = { color: 0xFFE5A0, emissive: 0xFFCC44, emissiveIntensity: 0.5, roughness: 0.4 };
-  const mkMat  = o => new THREE.MeshStandardMaterial(o);
+  const gold  = { color:0xFFD700, emissive:0xFF8800, emissiveIntensity:0.6, roughness:0.2, metalness:0.9 };
+  const skin  = { color:0xFFE5A0, emissive:0xFFCC44, emissiveIntensity:0.4, roughness:0.4 };
+  const mk    = o => new THREE.MeshStandardMaterial(o);
 
   // Lotus pedestal
   [0, 3].forEach(dy => {
-    const lotus = new THREE.Mesh(new THREE.TorusGeometry(8, 1.2, 8, 24), mkMat(gold));
+    const lotus = new THREE.Mesh(new THREE.TorusGeometry(8, 1.2, 8, 24), mk(gold));
     lotus.rotation.x = Math.PI / 2;
     lotus.position.y = -12 + dy;
     g.add(lotus);
   });
 
   // Body
-  const body = new THREE.Mesh(new THREE.SphereGeometry(3.5, 16, 16), mkMat({ ...gold, emissiveIntensity: 0.7 }));
+  const body = new THREE.Mesh(new THREE.SphereGeometry(3.5, 16, 16), mk({ ...gold, emissiveIntensity:0.7 }));
   body.scale.set(1, 1.6, 1);
   body.position.y = -5;
   g.add(body);
 
-  // Heads (4)
-  const hm = mkMat(skinG);
-  const mainH = new THREE.Mesh(new THREE.SphereGeometry(2.5, 20, 20), hm);
+  // Main head
+  const mainH = new THREE.Mesh(new THREE.SphereGeometry(2.5, 20, 20), mk(skin));
   mainH.position.y = 2;
   g.add(mainH);
+
+  // Side heads (3)
   [0, Math.PI * 2/3, Math.PI * 4/3].forEach(a => {
-    const sh = new THREE.Mesh(new THREE.SphereGeometry(1.8, 12, 12), mkMat({ ...skinG, emissiveIntensity: 0.35 }));
+    const sh = new THREE.Mesh(new THREE.SphereGeometry(1.8, 12, 12), mk({ ...skin, emissiveIntensity:0.3 }));
     sh.position.set(Math.sin(a) * 2.8, 2.8, Math.cos(a) * 2.8);
     g.add(sh);
   });
 
   // Crown
-  const crown = new THREE.Mesh(new THREE.ConeGeometry(2, 4, 8), mkMat({ ...gold, emissiveIntensity: 1 }));
+  const crown = new THREE.Mesh(new THREE.ConeGeometry(2, 4, 8), mk({ ...gold, emissiveIntensity:1 }));
   crown.position.y = 6.5;
   g.add(crown);
 
-  // 4 orbiting Vedas
+  // 4 orbiting Vedas (books)
   for (let i = 0; i < 4; i++) {
     const veda = new THREE.Mesh(
       new THREE.BoxGeometry(1.2, 1.8, 0.2),
-      mkMat({ color: 0xFF6600, emissive: 0xFF2200, emissiveIntensity: 0.8, roughness: 0.5 })
+      mk({ color:0xFF6600, emissive:0xFF2200, emissiveIntensity:0.8, roughness:0.5 })
     );
-    veda.userData.idx = i;
+    veda.userData.vedaIdx = i;
     g.add(veda);
   }
 
-  const lbl = makeLabel('BRAHMA', 'ब्रह्मा', '#FFD700', 380, 70);
+  const lbl = makeLabel('BRAHMA', 'ब्रह्मा', '#FFD700', 380, 65);
   lbl.position.set(0, 14, 0);
   lbl.scale.set(22, 5, 1);
   g.add(lbl);
 
-  scene.add(g);
+  // Saffron point light
+  const pl = new THREE.PointLight(0xFF8800, 2.5, 80);
+  pl.position.set(0, 5, 0);
+  g.add(pl);
+
+  grp.add(g);
   clickables.push({ mesh: g, data: DATA.brahma, label: 'Brahma' });
 
   animatables.push(t => {
-    g.rotation.y = Math.sin(t * 0.18) * 0.35;
+    g.rotation.y = Math.sin(t * 0.18) * 0.3;
     g.children.forEach(c => {
-      if (c.userData.idx !== undefined) {
-        const a = (c.userData.idx / 4) * Math.PI * 2 + t * 0.55;
-        c.position.set(Math.cos(a) * 9, 2 + Math.sin(t * 0.8 + c.userData.idx) * 0.8, Math.sin(a) * 9);
+      if (c.userData.vedaIdx !== undefined) {
+        const a = (c.userData.vedaIdx / 4) * Math.PI * 2 + t * 0.5;
+        c.position.set(Math.cos(a) * 9, 2 + Math.sin(t * 0.8 + c.userData.vedaIdx) * 0.8, Math.sin(a) * 9);
         c.rotation.y = a + Math.PI / 2;
       }
     });
@@ -665,309 +558,297 @@ function makeBrahma(pos) {
 }
 
 function makeVishnu(pos) {
-  const g = new THREE.Group();
+  const grp = getGroup('trimurti');
+  const g   = new THREE.Group();
   g.position.copy(pos);
 
-  const blue  = { color: 0x0D47A1, emissive: 0x1565C0, emissiveIntensity: 0.7, roughness: 0.2, metalness: 0.8 };
-  const mkMat = o => new THREE.MeshStandardMaterial(o);
+  const blue = { color:0x0D47A1, emissive:0x1565C0, emissiveIntensity:0.7, roughness:0.2, metalness:0.8 };
+  const mk   = o => new THREE.MeshStandardMaterial(o);
 
-  // Pedestal
-  const ped = new THREE.Mesh(new THREE.CylinderGeometry(5, 6, 3, 12), mkMat({ color: 0x880088, emissive: 0x440055, emissiveIntensity: 0.5, roughness: 0.5, metalness: 0.6 }));
+  const ped = new THREE.Mesh(new THREE.CylinderGeometry(5, 6, 3, 12),
+    mk({ color:0x880088, emissive:0x440055, emissiveIntensity:0.5, roughness:0.5, metalness:0.6 }));
   ped.position.y = -13.5;
   g.add(ped);
 
-  // Body
-  const body = new THREE.Mesh(new THREE.SphereGeometry(4, 16, 16), mkMat(blue));
+  const body = new THREE.Mesh(new THREE.SphereGeometry(4, 16, 16), mk(blue));
   body.scale.set(1, 2, 1);
   body.position.y = -5;
   g.add(body);
 
-  // Head
-  const head = new THREE.Mesh(new THREE.SphereGeometry(3, 20, 20), mkMat({ ...blue, color: 0x1565C0, emissiveIntensity: 0.6 }));
+  const head = new THREE.Mesh(new THREE.SphereGeometry(3, 20, 20), mk({ ...blue, color:0x1565C0, emissiveIntensity:0.6 }));
   head.position.y = 4;
   g.add(head);
 
-  // Crown / Kirita Mukuta (tall cone)
-  const crown = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 2.5, 6, 8), mkMat({ color: 0xFFD700, emissive: 0xFFAA00, emissiveIntensity: 1, roughness: 0.1, metalness: 0.95 }));
+  const crown = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 2.5, 6, 8),
+    mk({ color:0xFFD700, emissive:0xFFAA00, emissiveIntensity:1, roughness:0.1, metalness:0.95 }));
   crown.position.y = 10;
   g.add(crown);
 
-  // Sudarshana Chakra (spinning disc with spokes)
-  const chakraGroup = new THREE.Group();
-  chakraGroup.position.set(10, 3, 0);
-  const chakraRing = new THREE.Mesh(new THREE.TorusGeometry(4, 0.8, 8, 32), mkMat({ color: 0xFFD700, emissive: 0xFF6600, emissiveIntensity: 1.2, roughness: 0.1, metalness: 1 }));
-  chakraGroup.add(chakraRing);
+  // Sudarshana Chakra
+  const cGrp = new THREE.Group();
+  cGrp.position.set(10, 3, 0);
+  const cRing = new THREE.Mesh(new THREE.TorusGeometry(4, 0.8, 8, 32),
+    mk({ color:0xFFD700, emissive:0xFF6600, emissiveIntensity:1.2, roughness:0.1, metalness:1 }));
+  cGrp.add(cRing);
   for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2;
-    const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 7.5, 4), mkMat({ color: 0xFFD700, emissive: 0xFFAA00, emissiveIntensity: 0.8 }));
+    const a  = (i / 8) * Math.PI * 2;
+    const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 7.5, 4),
+      mk({ color:0xFFD700, emissive:0xFFAA00, emissiveIntensity:0.8 }));
     sp.rotation.z = Math.PI / 2;
     sp.rotation.y = a;
-    chakraGroup.add(sp);
+    cGrp.add(sp);
   }
-  g.add(chakraGroup);
+  g.add(cGrp);
 
-  const lbl = makeLabel('VISHNU', 'विष्णु', '#4FC3F7', 360, 70);
+  const lbl = makeLabel('VISHNU', 'विष्णु', '#4FC3F7', 360, 65);
   lbl.position.set(0, 16, 0);
   lbl.scale.set(22, 5, 1);
   g.add(lbl);
 
-  scene.add(g);
+  const pl = new THREE.PointLight(0x1565C0, 2.0, 80);
+  pl.position.set(0, 5, 0);
+  g.add(pl);
+
+  grp.add(g);
   clickables.push({ mesh: g, data: DATA.vishnu, label: 'Vishnu' });
 
   animatables.push(t => {
-    chakraGroup.rotation.z = t * 1.4;
-    g.rotation.y = Math.sin(t * 0.15 + 1) * 0.3;
+    cGrp.rotation.z = t * 1.4;
+    g.rotation.y = Math.sin(t * 0.15 + 1) * 0.28;
   });
 }
 
 function makeShiva(pos) {
-  const g = new THREE.Group();
+  const grp = getGroup('trimurti');
+  const g   = new THREE.Group();
   g.position.copy(pos);
 
-  const silver = { color: 0xDDDDFF, emissive: 0x8888FF, emissiveIntensity: 0.6, roughness: 0.15, metalness: 0.85 };
-  const mkMat  = o => new THREE.MeshStandardMaterial(o);
+  const silver = { color:0xDDDDFF, emissive:0x8888FF, emissiveIntensity:0.6, roughness:0.15, metalness:0.85 };
+  const mk     = o => new THREE.MeshStandardMaterial(o);
 
-  // Pedestal — Lingam-like cylinder
-  const ped = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 4.5, 5, 12), mkMat({ color: 0x222233, emissive: 0x4444AA, emissiveIntensity: 0.5, roughness: 0.4, metalness: 0.7 }));
+  const ped = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 4.5, 5, 12),
+    mk({ color:0x222233, emissive:0x4444AA, emissiveIntensity:0.5, roughness:0.4, metalness:0.7 }));
   ped.position.y = -14;
   g.add(ped);
 
-  // Body
-  const body = new THREE.Mesh(new THREE.SphereGeometry(3.8, 16, 16), mkMat(silver));
+  const body = new THREE.Mesh(new THREE.SphereGeometry(3.8, 16, 16), mk(silver));
   body.scale.set(1, 1.8, 1);
   body.position.y = -5;
   g.add(body);
 
-  // Head
-  const head = new THREE.Mesh(new THREE.SphereGeometry(2.8, 20, 20), mkMat(silver));
+  const head = new THREE.Mesh(new THREE.SphereGeometry(2.8, 20, 20), mk(silver));
   head.position.y = 3.5;
   g.add(head);
 
-  // Third eye
-  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8), mkMat({ color: 0xFF2200, emissive: 0xFF5500, emissiveIntensity: 3, roughness: 0.1 }));
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8),
+    mk({ color:0xFF2200, emissive:0xFF5500, emissiveIntensity:3, roughness:0.1 }));
   eye.position.set(0, 4.2, 2.7);
   g.add(eye);
 
-  // Crescent moon above
-  const moon = new THREE.Mesh(new THREE.TorusGeometry(2, 0.5, 8, 20, Math.PI), mkMat({ color: 0xEEEEFF, emissive: 0xCCCCFF, emissiveIntensity: 0.8, roughness: 0.3 }));
+  const moon = new THREE.Mesh(new THREE.TorusGeometry(2, 0.5, 8, 20, Math.PI),
+    mk({ color:0xEEEEFF, emissive:0xCCCCFF, emissiveIntensity:0.8, roughness:0.3 }));
   moon.position.y = 8;
   moon.rotation.z = Math.PI;
   g.add(moon);
 
-  // Trishul (trident)
-  const shaftGeo = new THREE.CylinderGeometry(0.3, 0.3, 14, 6);
-  const shaft = new THREE.Mesh(shaftGeo, mkMat({ color: 0xFFD700, emissive: 0xFF8800, emissiveIntensity: 0.8, metalness: 0.9, roughness: 0.1 }));
+  // Trishul
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 14, 6),
+    mk({ color:0xFFD700, emissive:0xFF8800, emissiveIntensity:0.8, metalness:0.9, roughness:0.1 }));
   shaft.position.set(-10, 2, 0);
   g.add(shaft);
-  [-2, 0, 2].forEach((ox, ci) => {
-    const prong = new THREE.Mesh(new THREE.ConeGeometry(0.4, 3, 6), mkMat({ color: 0xFFD700, emissive: 0xFF8800, emissiveIntensity: 1, metalness: 0.9, roughness: 0.1 }));
+  [-2, 0, 2].forEach(ox => {
+    const prong = new THREE.Mesh(new THREE.ConeGeometry(0.4, 3, 6),
+      mk({ color:0xFFD700, emissive:0xFF8800, emissiveIntensity:1, metalness:0.9, roughness:0.1 }));
     prong.position.set(-10 + ox, 10.5, 0);
     g.add(prong);
   });
 
-  // Ring of fire (particles)
-  const fireCount = 80;
-  const fPositions = new Float32Array(fireCount * 3);
+  // Ring of fire
+  const fireCount = 72;
+  const fPos = new Float32Array(fireCount * 3);
   for (let i = 0; i < fireCount; i++) {
     const a = (i / fireCount) * Math.PI * 2;
-    fPositions[i*3]   = Math.cos(a) * 14;
-    fPositions[i*3+1] = 0;
-    fPositions[i*3+2] = Math.sin(a) * 14;
+    fPos[i*3]   = Math.cos(a) * 14;
+    fPos[i*3+1] = 0;
+    fPos[i*3+2] = Math.sin(a) * 14;
   }
   const fGeo = new THREE.BufferGeometry();
-  fGeo.setAttribute('position', new THREE.BufferAttribute(fPositions, 3));
+  fGeo.setAttribute('position', new THREE.BufferAttribute(fPos, 3));
   const fMat = new THREE.PointsMaterial({
-    color: 0xFF4400,
-    size: 2.0,
-    transparent: true,
-    opacity: 0.9,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
+    color:0xFF4400, size:2.2, transparent:true, opacity:0.85,
+    blending:THREE.AdditiveBlending, depthWrite:false
   });
   const fire = new THREE.Points(fGeo, fMat);
-  fire.position.y = 0;
   g.add(fire);
 
-  const lbl = makeLabel('SHIVA', 'शिव', '#CE93D8', 320, 70);
+  const lbl = makeLabel('SHIVA', 'शिव', '#CE93D8', 320, 65);
   lbl.position.set(0, 16, 0);
   lbl.scale.set(20, 5, 1);
   g.add(lbl);
 
-  scene.add(g);
+  const pl = new THREE.PointLight(0xCC3333, 2.0, 80);
+  pl.position.set(0, 5, 0);
+  g.add(pl);
+
+  grp.add(g);
   clickables.push({ mesh: g, data: DATA.shiva, label: 'Shiva' });
 
   animatables.push(t => {
-    g.rotation.y = Math.sin(t * 0.2 + 2) * 0.35;
-    fire.rotation.y = t * 0.9;
-    const pFlicker = 0.7 + 0.3 * Math.sin(t * 8);
-    fMat.opacity = 0.9 * pFlicker;
+    g.rotation.y = Math.sin(t * 0.2 + 2) * 0.3;
+    fire.rotation.y = t * 0.85;
+    fMat.opacity = 0.85 * (0.7 + 0.3 * Math.sin(t * 7));
   });
 }
 
-// ── 14 Lokas ──────────────────────────────────────────────────
+// ── 14 Lokas — unified gold-to-dark-copper gradient ───────────
 const LOKA_DATA = [
-  { key:'satya',    name:'Satya Loka',    sk:'सत्यलोक',   y:205, color:0xFFFFEE, em:0xFFFFAA, eI:0.9,  r:85 },
-  { key:'tapa',     name:'Tapa Loka',     sk:'तपलोक',     y:182, color:0xFF9933, em:0xFF6600, eI:0.7,  r:85 },
-  { key:'jana',     name:'Jana Loka',     sk:'जनलोक',     y:159, color:0xBBCCFF, em:0x8899FF, eI:0.7,  r:85 },
-  { key:'mahar',    name:'Mahar Loka',    sk:'महर्लोक',   y:136, color:0x88CC88, em:0x44AA44, eI:0.7,  r:85 },
-  { key:'svar',     name:'Svar Loka',     sk:'स्वर्गलोक', y:113, color:0xFFD700, em:0xFFAA00, eI:1.0,  r:90 },
-  { key:'bhuvar',   name:'Bhuvar Loka',   sk:'भुवर्लोक',  y: 90, color:0x88AAFF, em:0x4466FF, eI:0.6,  r:85 },
-  { key:'bhu',      name:'Bhu Loka',      sk:'भूलोक',     y: 67, color:0x33BB66, em:0x22AA44, eI:0.7,  r:90 },
-  { key:'atala',    name:'Atala',         sk:'अतल',       y: 40, color:0xBBAA88, em:0x998866, eI:0.5,  r:85 },
-  { key:'vitala',   name:'Vitala',        sk:'वितल',      y: 17, color:0xAA7744, em:0x884422, eI:0.5,  r:85 },
-  { key:'sutala',   name:'Sutala',        sk:'सुतल',      y: -6, color:0xBB9900, em:0x997700, eI:0.5,  r:85 },
-  { key:'talatala', name:'Talatala',      sk:'तलातल',     y:-29, color:0x884422, em:0x662200, eI:0.5,  r:85 },
-  { key:'mahatala', name:'Mahatala',      sk:'महातल',     y:-52, color:0x224444, em:0x113333, eI:0.5,  r:85 },
-  { key:'rasatala', name:'Rasatala',      sk:'रसातल',     y:-75, color:0xAA1111, em:0x880000, eI:0.6,  r:85 },
-  { key:'patala',   name:'Patala',        sk:'पाताल',     y:-98, color:0x440088, em:0x220055, eI:0.7,  r:85 }
+  { key:'satya',    name:'Satya Loka',    sk:'सत्यलोक',   y: 175 },
+  { key:'tapa',     name:'Tapa Loka',     sk:'तपलोक',     y: 150 },
+  { key:'jana',     name:'Jana Loka',     sk:'जनलोक',     y: 125 },
+  { key:'mahar',    name:'Mahar Loka',    sk:'महर्लोक',   y: 100 },
+  { key:'svar',     name:'Svar Loka',     sk:'स्वर्गलोक', y:  75 },
+  { key:'bhuvar',   name:'Bhuvar Loka',   sk:'भुवर्लोक',  y:  50 },
+  { key:'bhu',      name:'Bhu Loka',      sk:'भूलोक',     y:  25 },
+  { key:'atala',    name:'Atala',         sk:'अतल',       y: -25 },
+  { key:'vitala',   name:'Vitala',        sk:'वितल',      y: -50 },
+  { key:'sutala',   name:'Sutala',        sk:'सुतल',      y: -75 },
+  { key:'talatala', name:'Talatala',      sk:'तलातल',     y:-100 },
+  { key:'mahatala', name:'Mahatala',      sk:'महातल',     y:-125 },
+  { key:'rasatala', name:'Rasatala',      sk:'रसातल',     y:-150 },
+  { key:'patala',   name:'Patala',        sk:'पाताल',     y:-175 }
 ];
 
 function createLokas() {
+  const g = getGroup('lokas');
+
+  // Vertical axis line — subtle
+  const axGeo = new THREE.CylinderGeometry(0.3, 0.3, 380, 6);
+  const axMat = new THREE.MeshBasicMaterial({ color:0x443322, transparent:true, opacity:0.25 });
+  g.add(new THREE.Mesh(axGeo, axMat));
+
   LOKA_DATA.forEach((ld, i) => {
+    const frac  = i / (LOKA_DATA.length - 1); // 0=Satya, 1=Patala
+    const bright = 1 - frac * 0.78;
+
+    const col = new THREE.Color(
+      0.92 * bright + 0.08,
+      0.65 * bright + 0.02,
+      0.04 * bright
+    );
+    const emi = new THREE.Color(
+      0.7  * bright,
+      0.35 * bright,
+      0.0
+    );
+    const eI = 0.85 - frac * 0.55;
+
     const mat = new THREE.MeshStandardMaterial({
-      color: ld.color,
-      emissive: ld.em,
-      emissiveIntensity: ld.eI,
-      roughness: 0.3,
-      metalness: 0.6,
-      transparent: true,
-      opacity: 0.85
+      color: col, emissive: emi, emissiveIntensity: eI,
+      roughness:0.3, metalness:0.7, transparent:true, opacity:0.9
     });
 
-    // Main torus ring
-    const geo = new THREE.TorusGeometry(ld.r, 5, 10, 80);
-    const mesh = new THREE.Mesh(geo, mat);
+    const mesh = new THREE.Mesh(new THREE.TorusGeometry(82, 4, 10, 80), mat);
     mesh.rotation.x = Math.PI / 2;
     mesh.position.y = ld.y;
-    scene.add(mesh);
+    g.add(mesh);
 
-    // Find data
     const info = DATA.lokas[ld.key];
     if (info) clickables.push({ mesh, data: info, label: ld.name });
 
-    // Label sprite
-    const lbl = makeLabel(ld.name, ld.sk, '#' + ld.color.toString(16).padStart(6,'0'), 420, 70);
-    lbl.position.set(ld.r + 18, ld.y, 0);
-    lbl.scale.set(26, 5, 1);
-    scene.add(lbl);
+    const hexStr = '#' + col.getHexString();
+    const lbl = makeLabel(ld.name, ld.sk, hexStr, 420, 62);
+    lbl.position.set(100, ld.y, 0);
+    lbl.scale.set(26, 4.5, 1);
+    g.add(lbl);
 
-    // Animate — subtle pulse
-    animatables.push(t => {
-      const p = 0.85 + 0.15 * Math.sin(t * 0.8 + i * 0.45);
-      mat.emissiveIntensity = ld.eI * p;
-      mesh.rotation.z = t * 0.01 * (i % 2 === 0 ? 1 : -1);
+    animatables.push(tt => {
+      const p = 0.85 + 0.15 * Math.sin(tt * 0.8 + i * 0.45);
+      mat.emissiveIntensity = eI * p;
+      mesh.rotation.z = tt * 0.008 * (i % 2 === 0 ? 1 : -1);
     });
   });
 }
 
-// ── Sri Yantra Floor at Bhu Loka ──────────────────────────────
+// ── Sri Yantra at Bhu Loka ────────────────────────────────────
 function createSriYantraFloor() {
-  const Y = 67;
+  const g    = getGroup('lokas');
   const size = 512;
-  const canvas = document.createElement('canvas');
-  canvas.width = size; canvas.height = size;
-  const ctx = canvas.getContext('2d');
+  const can  = document.createElement('canvas');
+  can.width  = size; can.height = size;
+  const ctx  = can.getContext('2d');
 
   drawSriYantra(ctx, size);
 
-  const tex = new THREE.CanvasTexture(canvas);
-  const geo = new THREE.CircleGeometry(88, 64);
+  const tex = new THREE.CanvasTexture(can);
+  const geo = new THREE.CircleGeometry(80, 64);
   const mat = new THREE.MeshBasicMaterial({
-    map: tex,
-    transparent: true,
-    opacity: 0.55,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide
+    map:tex, transparent:true, opacity:0.5,
+    blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide
   });
   const disc = new THREE.Mesh(geo, mat);
   disc.rotation.x = -Math.PI / 2;
-  disc.position.y = Y - 2;
-  scene.add(disc);
+  disc.position.y = 23;
+  g.add(disc);
 
-  animatables.push(t => {
-    disc.rotation.z = -t * 0.015;
-  });
+  animatables.push(t => { disc.rotation.z = -t * 0.012; });
 }
 
 function drawSriYantra(ctx, s) {
-  const cx = s / 2, cy = s / 2, r = s * 0.43;
-
+  const cx = s/2, cy = s/2, r = s*0.43;
   ctx.clearRect(0, 0, s, s);
 
-  // Outer square bhupura
-  ctx.strokeStyle = 'rgba(255,215,0,0.5)';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(255,215,0,0.45)';
+  ctx.lineWidth = 2.5;
   for (let i = 0; i < 3; i++) {
-    const d = 8 + i * 10;
-    ctx.strokeRect(d, d, s - d * 2, s - d * 2);
+    const d = 8 + i * 9;
+    ctx.strokeRect(d, d, s - d*2, s - d*2);
   }
 
-  // Lotus petals (16)
-  ctx.strokeStyle = 'rgba(255,180,0,0.4)';
-  ctx.lineWidth = 1.5;
   for (let i = 0; i < 16; i++) {
-    const a = (i / 16) * Math.PI * 2;
+    const a = (i/16)*Math.PI*2;
     ctx.save();
-    ctx.translate(cx + Math.cos(a) * r * 0.85, cy + Math.sin(a) * r * 0.85);
+    ctx.translate(cx + Math.cos(a)*r*0.85, cy + Math.sin(a)*r*0.85);
     ctx.rotate(a);
+    ctx.strokeStyle = 'rgba(255,180,0,0.35)';
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.ellipse(0, 0, r * 0.1, r * 0.22, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, r*0.09, r*0.21, 0, 0, Math.PI*2);
     ctx.stroke();
     ctx.restore();
   }
 
-  // 8-petal lotus
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
-    ctx.save();
-    ctx.translate(cx + Math.cos(a) * r * 0.6, cy + Math.sin(a) * r * 0.6);
-    ctx.rotate(a);
-    ctx.strokeStyle = 'rgba(255,150,0,0.45)';
+  [r*0.95, r, r*1.05].forEach(cr => {
     ctx.beginPath();
-    ctx.ellipse(0, 0, r * 0.08, r * 0.2, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  // 3 circles
-  [r * 0.95, r, r * 1.05].forEach(cr => {
-    ctx.beginPath();
-    ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,215,0,0.3)';
+    ctx.arc(cx, cy, cr, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(255,215,0,0.28)';
     ctx.lineWidth = 1;
     ctx.stroke();
   });
 
-  // 9 interlocking triangles — simplified as 5 upward + 4 downward
   const tris = [
-    // Upward (Shiva) triangles — 4 of them at different scales
-    [0, -r*0.95, -r*0.82, r*0.48, r*0.82, r*0.48],    // 1 large
-    [0, -r*0.55, -r*0.48, r*0.27, r*0.48, r*0.27],    // 2 small
-    [0, -r*0.72, -r*0.62, r*0.36, r*0.62, r*0.36],    // 3 mid
-    // Downward (Shakti) triangles — 5 of them
-    [0, r*0.95, -r*0.82, -r*0.48, r*0.82, -r*0.48],   // 1 large
-    [0, r*0.72, -r*0.62, -r*0.36, r*0.62, -r*0.36],   // 2 mid
-    [0, r*0.50, -r*0.43, -r*0.25, r*0.43, -r*0.25],   // 3 small
-    [-r*0.35, r*0.20, r*0.35, r*0.20, 0, -r*0.40],    // 4 innermost up
-    [0, r*0.40, -r*0.35, -r*0.20, r*0.35, -r*0.20],   // 5 innermost down
+    [0,-r*0.95,-r*0.82,r*0.48,r*0.82,r*0.48],
+    [0,-r*0.55,-r*0.48,r*0.27,r*0.48,r*0.27],
+    [0,-r*0.72,-r*0.62,r*0.36,r*0.62,r*0.36],
+    [0,r*0.95,-r*0.82,-r*0.48,r*0.82,-r*0.48],
+    [0,r*0.72,-r*0.62,-r*0.36,r*0.62,-r*0.36],
+    [0,r*0.50,-r*0.43,-r*0.25,r*0.43,-r*0.25],
+    [-r*0.35,r*0.20,r*0.35,r*0.20,0,-r*0.40],
+    [0,r*0.40,-r*0.35,-r*0.20,r*0.35,-r*0.20],
   ];
-
   tris.forEach((t, i) => {
     ctx.beginPath();
-    ctx.moveTo(cx + t[0], cy + t[1]);
-    ctx.lineTo(cx + t[2], cy + t[3]);
-    ctx.lineTo(cx + t[4], cy + t[5]);
+    ctx.moveTo(cx+t[0], cy+t[1]);
+    ctx.lineTo(cx+t[2], cy+t[3]);
+    ctx.lineTo(cx+t[4], cy+t[5]);
     ctx.closePath();
-    const bright = 255 - i * 15;
-    ctx.strokeStyle = `rgba(${bright},${Math.max(100,bright-80)},0,${0.65 - i*0.04})`;
-    ctx.lineWidth = 1.5;
+    const br = 255 - i*14;
+    ctx.strokeStyle = `rgba(${br},${Math.max(100,br-80)},0,${0.6-i*0.04})`;
+    ctx.lineWidth = 1.4;
     ctx.stroke();
   });
 
-  // Bindu (center dot)
   ctx.beginPath();
-  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.arc(cx, cy, 4, 0, Math.PI*2);
   ctx.fillStyle = '#FFD700';
   ctx.shadowColor = '#FFD700';
   ctx.shadowBlur = 18;
@@ -976,274 +857,198 @@ function drawSriYantra(ctx, s) {
 
 // ── Chakra Column ─────────────────────────────────────────────
 const CHAKRA_DATA = [
-  { key:'muladhara',    color:0xFF1111, em:0xCC0000, y: 25, name:'Muladhara',    sk:'मूलाधार'    },
-  { key:'svadhisthana', color:0xFF6600, em:0xDD4400, y: 35, name:'Svadhisthana', sk:'स्वाधिष्ठान'},
-  { key:'manipura',     color:0xFFFF00, em:0xCCCC00, y: 45, name:'Manipura',     sk:'मणिपूर'     },
-  { key:'anahata',      color:0x00CC44, em:0x008833, y: 55, name:'Anahata',      sk:'अनाहत'      },
-  { key:'vishuddha',    color:0x00AAFF, em:0x0077DD, y: 65, name:'Vishuddha',    sk:'विशुद्ध'    },
-  { key:'ajna',         color:0x4400FF, em:0x2200CC, y: 75, name:'Ajna',         sk:'आज्ञा'      },
-  { key:'sahasrara',    color:0xFF00FF, em:0xCC00CC, y: 85, name:'Sahasrara',    sk:'सहस्रार'    }
+  { key:'muladhara',    color:0xCC2200, em:0xAA1100, y:-80, name:'Muladhara',    sk:'मूलाधार'     },
+  { key:'svadhisthana', color:0xDD5500, em:0xBB3300, y:-48, name:'Svadhisthana', sk:'स्वाधिष्ठान' },
+  { key:'manipura',     color:0xDDCC00, em:0xBBAA00, y:-16, name:'Manipura',     sk:'मणिपूर'      },
+  { key:'anahata',      color:0x22AA55, em:0x118833, y: 16, name:'Anahata',      sk:'अनाहत'       },
+  { key:'vishuddha',    color:0x1188DD, em:0x0066BB, y: 48, name:'Vishuddha',    sk:'विशुद्ध'     },
+  { key:'ajna',         color:0x4422CC, em:0x2200AA, y: 80, name:'Ajna',         sk:'आज्ञा'       },
+  { key:'sahasrara',    color:0xBB00CC, em:0x880099, y:112, name:'Sahasrara',    sk:'सहस्रार'     }
 ];
 
 function createChakraColumn() {
-  const X_OFFSET = 0;
+  const grp = getGroup('chakras');
 
   CHAKRA_DATA.forEach((cd, i) => {
     const mat = new THREE.MeshStandardMaterial({
-      color: cd.color,
-      emissive: cd.em,
-      emissiveIntensity: 0.9,
-      roughness: 0.2,
-      metalness: 0.5,
-      transparent: true,
-      opacity: 0.92
+      color:cd.color, emissive:cd.em, emissiveIntensity:0.75,
+      roughness:0.2, metalness:0.5, transparent:true, opacity:0.9
     });
 
-    // Chakra sphere
-    const geo = new THREE.SphereGeometry(2.8, 20, 20);
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(X_OFFSET, cd.y, 0);
-    scene.add(mesh);
+    const sz   = 3 + (i === 6 ? 1.5 : 0); // sahasrara larger
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(sz, 24, 24), mat);
+    mesh.position.set(0, cd.y, 0);
+    grp.add(mesh);
 
-    // Orbital ring
     const oMat = new THREE.MeshBasicMaterial({
-      color: cd.color,
-      transparent: true,
-      opacity: 0.4,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
+      color:cd.color, transparent:true, opacity:0.3,
+      blending:THREE.AdditiveBlending, depthWrite:false
     });
-    const oRing = new THREE.Mesh(new THREE.TorusGeometry(5 + i * 0.3, 0.4, 6, 24), oMat);
-    oRing.position.set(X_OFFSET, cd.y, 0);
+    const oRing = new THREE.Mesh(new THREE.TorusGeometry(5 + i*0.5, 0.4, 6, 28), oMat);
+    oRing.position.set(0, cd.y, 0);
     oRing.rotation.x = Math.PI / 2;
-    scene.add(oRing);
+    grp.add(oRing);
 
     const info = DATA.chakras[cd.key];
     if (info) clickables.push({ mesh, data: info, label: cd.name });
 
-    const lbl = makeLabel(cd.name, cd.sk, '#' + cd.color.toString(16).padStart(6,'0'), 360, 65);
-    lbl.position.set(X_OFFSET + 14, cd.y, 0);
+    const hexStr = '#' + new THREE.Color(cd.color).getHexString();
+    const lbl = makeLabel(cd.name, cd.sk, hexStr, 360, 62);
+    lbl.position.set(16, cd.y, 0);
     lbl.scale.set(20, 4.5, 1);
-    scene.add(lbl);
+    grp.add(lbl);
 
     animatables.push(t => {
-      const p = 0.8 + 0.2 * Math.sin(t * 1.5 + i * 0.6);
-      mat.emissiveIntensity = 0.9 * p;
-      oRing.rotation.z = t * (0.5 + i * 0.08) * (i % 2 === 0 ? 1 : -1);
-
-      if (cd.key === 'sahasrara') {
-        mesh.rotation.y = t * 0.3;
-      }
+      const p = 0.78 + 0.22 * Math.sin(t * 1.4 + i * 0.6);
+      mat.emissiveIntensity = 0.75 * p;
+      oRing.rotation.z = t * (0.45 + i*0.07) * (i % 2 === 0 ? 1 : -1);
     });
   });
 
-  // Sushumna channel (central vertical tube)
-  const pts = CHAKRA_DATA.map(c => new THREE.Vector3(X_OFFSET, c.y, 0));
-  const curve = new THREE.CatmullRomCurve3(pts);
-  const tubeGeo = new THREE.TubeGeometry(curve, 40, 0.4, 6, false);
-  const tubeMat = new THREE.MeshBasicMaterial({
-    color: 0xFFFFFF,
-    transparent: true,
-    opacity: 0.15,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-  scene.add(new THREE.Mesh(tubeGeo, tubeMat));
+  // Sushumna tube
+  const spts   = CHAKRA_DATA.map(c => new THREE.Vector3(0, c.y, 0));
+  const curve  = new THREE.CatmullRomCurve3(spts);
+  const tubGeo = new THREE.TubeGeometry(curve, 50, 0.4, 6, false);
+  const tubMat = new THREE.MeshBasicMaterial({ color:0xFFFFFF, transparent:true, opacity:0.12,
+    blending:THREE.AdditiveBlending, depthWrite:false });
+  grp.add(new THREE.Mesh(tubGeo, tubMat));
 }
 
 // ── Ananta Shesha — Cosmic Serpent ───────────────────────────
 function createSheshaNaga() {
-  const coils = 10;
-  const pts = [];
-  const segments = 400;
-
-  for (let i = 0; i <= segments; i++) {
-    const t   = i / segments;
-    const a   = t * Math.PI * 2 * coils;
-    const y   = -100 + t * (225 - (-100));
-    const rad = 105 + Math.sin(t * Math.PI * 5) * 15;
-    pts.push(new THREE.Vector3(Math.cos(a) * rad, y, Math.sin(a) * rad));
+  const grp  = getGroup('chakras');
+  const coils= 8;
+  const pts  = [];
+  for (let i = 0; i <= 280; i++) {
+    const tt  = i / 280;
+    const a   = tt * Math.PI * 2 * coils;
+    const y   = -100 + tt * 240;
+    const rad = 90 + Math.sin(tt * Math.PI * 4) * 12;
+    pts.push(new THREE.Vector3(Math.cos(a)*rad, y, Math.sin(a)*rad));
   }
 
-  const curve   = new THREE.CatmullRomCurve3(pts);
-  const tubeGeo = new THREE.TubeGeometry(curve, 400, 2.8, 8, false);
-
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0x1A5C1A,
-    emissive: 0x004400,
-    emissiveIntensity: 0.5,
-    roughness: 0.3,
-    metalness: 0.7,
-    transparent: true,
-    opacity: 0.75
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const tGeo  = new THREE.TubeGeometry(curve, 300, 2.5, 8, false);
+  const tMat  = new THREE.MeshStandardMaterial({
+    color:0x1A5C1A, emissive:0x004400, emissiveIntensity:0.5,
+    roughness:0.3, metalness:0.7, transparent:true, opacity:0.7
   });
+  const snake = new THREE.Mesh(tGeo, tMat);
+  grp.add(snake);
+  clickables.push({ mesh:snake, data:DATA.shesha, label:'Ananta Shesha' });
 
-  const snake = new THREE.Mesh(tubeGeo, mat);
-  scene.add(snake);
-  clickables.push({ mesh: snake, data: DATA.shesha, label: 'Ananta Shesha' });
+  // Head
+  const hGeo  = new THREE.SphereGeometry(5, 16, 16);
+  const hMat  = new THREE.MeshStandardMaterial({ color:0x228822, emissive:0x00AA00, emissiveIntensity:0.8, roughness:0.2, metalness:0.8 });
+  const head  = new THREE.Mesh(hGeo, hMat);
+  const last  = pts[pts.length-1];
+  head.position.copy(last);
+  grp.add(head);
 
-  // Hooded head
-  const headGeo = new THREE.SphereGeometry(5, 16, 16);
-  const headMat = new THREE.MeshStandardMaterial({
-    color: 0x228822, emissive: 0x00AA00, emissiveIntensity: 0.8,
-    roughness: 0.2, metalness: 0.8
-  });
-  const head = new THREE.Mesh(headGeo, headMat);
-  const lastPt = pts[pts.length - 1];
-  head.position.copy(lastPt);
-  scene.add(head);
-
-  // Glow
-  const glowMat = new THREE.MeshBasicMaterial({
-    color: 0x00FF44,
-    transparent: true, opacity: 0.08,
-    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide
-  });
-  const glow = new THREE.Mesh(headGeo.clone().scale(1.5,1.5,1.5), glowMat);
-  head.add(glow);
-
-  animatables.push(t => {
-    mat.emissiveIntensity = 0.5 + 0.2 * Math.sin(t * 0.6);
-  });
+  animatables.push(t => { tMat.emissiveIntensity = 0.5 + 0.2*Math.sin(t*0.6); });
 }
 
-// ── Soul Particles (Jivas rising to Brahman) ──────────────────
-function createSoulParticles() {
-  const count = 1800;
-  const pos   = new Float32Array(count * 3);
-  const spd   = new Float32Array(count);
-  const orb   = new Float32Array(count);
+// ── Kalachakra — Wheel of Time ────────────────────────────────
+function createKalachakra() {
+  const grp = getGroup('yugas');
+  const R   = 110;
 
-  for (let i = 0; i < count; i++) {
-    const a  = Math.random() * Math.PI * 2;
-    // Keep particles close to the central column, not spread far out
-    const r  = 5 + Math.random() * 55;
-    pos[i*3]   = Math.cos(a) * r;
-    pos[i*3+1] = -100 + Math.random() * 360;
-    pos[i*3+2] = Math.sin(a) * r;
-    spd[i] = 0.25 + Math.random() * 0.9;
-    orb[i] = r;
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-
-  const mat = new THREE.PointsMaterial({
-    color: 0xFFEEAA,
-    size: 0.7,
-    transparent: true,
-    opacity: 0.30,          // was 0.65 — much more subtle now
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    sizeAttenuation: true
+  // Outer ring
+  const ringMat = new THREE.MeshStandardMaterial({
+    color:0xFFD700, emissive:0xFF8800, emissiveIntensity:0.7, roughness:0.2, metalness:0.9
   });
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(R, 2.5, 8, 100), ringMat);
+  ring.rotation.x = Math.PI/2;
+  grp.add(ring);
 
-  particles = new THREE.Points(geo, mat);
-  scene.add(particles);
+  // 4 Yuga arc segments
+  const yugaCols = [
+    { c:0xFFFFCC, e:0xFFDD00 },  // Satya — gold-white
+    { c:0xCCCCCC, e:0xAAAAAA },  // Treta — silver
+    { c:0xCC9966, e:0xFF6600 },  // Dwapara — bronze
+    { c:0x555566, e:0x2222AA }   // Kali — iron/dark
+  ];
+  const yugaKeys = ['satya', 'treta', 'dwapara', 'kali'];
 
-  animatables.push(t => {
-    const pa = geo.attributes.position;
-    for (let i = 0; i < count; i++) {
-      pa.setY(i, pa.getY(i) + spd[i] * 0.035);
-      if (pa.getY(i) > 256) pa.setY(i, -105);
-
-      const yN  = Math.max(0, (pa.getY(i) + 100) / 360);
-      const ra  = orb[i] * (1 - yN * 0.88);
-      const ang = Math.atan2(pa.getZ(i), pa.getX(i)) + 0.003;
-      pa.setX(i, Math.cos(ang) * ra);
-      pa.setZ(i, Math.sin(ang) * ra);
-    }
-    pa.needsUpdate = true;
-    // Gentle pulsing opacity
-    mat.opacity = 0.22 + 0.08 * Math.sin(t * 0.4);
-  });
-}
-
-// ── Navagrahas (9 Planets) ────────────────────────────────────
-const GRAHA_DATA = [
-  { name:'Surya',       color:0xFF8800, em:0xFF4400, eI:1.2, orbitR:50,  speed:0.30, size:3.5 },
-  { name:'Chandra',     color:0xEEEEFF, em:0xCCCCFF, eI:0.6, orbitR:62,  speed:0.24, size:2.5 },
-  { name:'Mangala',     color:0xFF2200, em:0xCC0000, eI:0.7, orbitR:74,  speed:0.45, size:2.2 },
-  { name:'Budha',       color:0x33FF66, em:0x00CC44, eI:0.7, orbitR:84,  speed:0.55, size:2.0 },
-  { name:'Brihaspati',  color:0xFFDD44, em:0xFFAA00, eI:0.6, orbitR:95,  speed:0.18, size:3.8 },
-  { name:'Shukra',      color:0xFFFFCC, em:0xEEEE88, eI:0.5, orbitR:105, speed:0.38, size:2.8 },
-  { name:'Shani',       color:0x5566AA, em:0x223388, eI:0.5, orbitR:118, speed:0.12, size:3.2 },
-  { name:'Rahu',        color:0x222244, em:0x111133, eI:0.3, orbitR:130, speed:-0.20, size:2.0 },
-  { name:'Ketu',        color:0x446644, em:0x224422, eI:0.3, orbitR:138, speed:0.20,  size:2.0 }
-];
-
-function createNavagrahas() {
-  const Y = 115;
-  const mkMat = o => new THREE.MeshStandardMaterial(o);
-
-  GRAHA_DATA.forEach((gd, i) => {
-    const mat = mkMat({ color: gd.color, emissive: gd.em, emissiveIntensity: gd.eI, roughness: 0.3, metalness: 0.7 });
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(gd.size, 14, 14), mat);
-    mesh.position.set(gd.orbitR, Y, 0);
-    scene.add(mesh);
-
-    // Saturn rings
-    if (gd.name === 'Shani') {
-      const rMat = mkMat({ color: 0x8899BB, emissive: 0x445588, emissiveIntensity: 0.3, roughness: 0.6, transparent: true, opacity: 0.7 });
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(gd.size * 1.8, 0.8, 6, 32), rMat);
-      ring.rotation.x = Math.PI / 3;
-      mesh.add(ring);
-    }
-
-    animatables.push(t => {
-      const a = t * gd.speed + (i / 9) * Math.PI * 2;
-      mesh.position.set(Math.cos(a) * gd.orbitR, Y + Math.sin(t * 0.3 + i) * 2, Math.sin(a) * gd.orbitR);
-      mesh.rotation.y = t * 0.5;
+  for (let i = 0; i < 4; i++) {
+    const angle = (i/4) * Math.PI * 2;
+    const arc   = new THREE.TorusGeometry(R*0.6, 10, 6, 20, Math.PI*0.42);
+    const m     = new THREE.MeshStandardMaterial({
+      color:yugaCols[i].c, emissive:yugaCols[i].e,
+      emissiveIntensity:0.5, roughness:0.4, transparent:true, opacity:0.9
     });
-  });
+    const seg = new THREE.Mesh(arc, m);
+    seg.rotation.x = Math.PI/2;
+    seg.rotation.z = angle + Math.PI*0.1;
+    grp.add(seg);
+    clickables.push({ mesh:seg, data:DATA.yugas[yugaKeys[i]], label:yugaKeys[i].charAt(0).toUpperCase()+yugaKeys[i].slice(1)+' Yuga' });
+  }
+
+  // 8 spokes
+  for (let i = 0; i < 8; i++) {
+    const a   = (i/8)*Math.PI*2;
+    const spk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.5, R-12, 6),
+      new THREE.MeshStandardMaterial({ color:0xFFD700, emissive:0xFF8800, emissiveIntensity:0.4, roughness:0.3 })
+    );
+    spk.position.set(Math.cos(a)*(R-12)/2, 0, Math.sin(a)*(R-12)/2);
+    spk.rotation.z = Math.PI/2;
+    spk.rotation.y = -a;
+    grp.add(spk);
+  }
+
+  // Hub
+  const hub = new THREE.Mesh(
+    new THREE.SphereGeometry(9, 16, 16),
+    new THREE.MeshStandardMaterial({ color:0xFFD700, emissive:0xFFAA00, emissiveIntensity:1, roughness:0.1, metalness:1 })
+  );
+  grp.add(hub);
+  clickables.push({ mesh:hub, data:DATA.kalachakra, label:'Kalachakra' });
+
+  const lbl = makeLabel('KALACHAKRA', 'कालचक्र', '#FFD700', 480, 72);
+  lbl.position.set(0, R + 18, 0);
+  lbl.scale.set(36, 7, 1);
+  grp.add(lbl);
+
+  animatables.push(t => { ring.rotation.z = t * 0.06; });
 }
 
 // ═══════════════════════════════════════════════════════════════
-// LABEL FACTORY (Canvas → Sprite)
+// LABEL FACTORY
 // ═══════════════════════════════════════════════════════════════
 function makeLabel(text, sub, color, w, h) {
   const canvas = document.createElement('canvas');
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
-
-  // Clear
   ctx.clearRect(0, 0, w, h);
 
-  // Main text
   ctx.fillStyle = color || '#FFD700';
-  ctx.font = `bold ${Math.round(h * 0.52)}px Cinzel, Georgia, serif`;
+  ctx.font = `bold ${Math.round(h * 0.50)}px Cinzel, Georgia, serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.shadowColor = color || '#FFD700';
-  ctx.shadowBlur = 14;
-  ctx.fillText(text, w / 2, h * 0.38);
+  ctx.shadowBlur = 12;
+  ctx.fillText(text, w/2, h * 0.38);
 
-  // Sub text
   if (sub) {
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.font = `${Math.round(h * 0.32)}px serif`;
-    ctx.shadowBlur = 6;
-    ctx.fillText(sub, w / 2, h * 0.72);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = `${Math.round(h * 0.30)}px serif`;
+    ctx.shadowBlur = 5;
+    ctx.fillText(sub, w/2, h * 0.72);
   }
 
   const tex = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.SpriteMaterial({
-    map: tex,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.NormalBlending
-  });
+  const mat = new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false });
   return new THREE.Sprite(mat);
 }
 
 // ═══════════════════════════════════════════════════════════════
-// INTERACTION — Raycasting
+// INTERACTION
 // ═══════════════════════════════════════════════════════════════
 const raycaster = new THREE.Raycaster();
 const mouse     = new THREE.Vector2(-9, -9);
 const tip       = document.getElementById('tip');
 
-/** Walk up the parent chain to find the matching clickable entry. */
 function findClickable(hitObject) {
   let obj = hitObject;
   while (obj) {
@@ -1285,10 +1090,8 @@ function onMouseMove(e) {
 function onCanvasClick(e) {
   mouse.x =  (e.clientX / innerWidth)  * 2 - 1;
   mouse.y = -(e.clientY / innerHeight) * 2 + 1;
-
   raycaster.setFromCamera(mouse, camera);
   const hits = raycaster.intersectObjects(clickables.map(c => c.mesh), true);
-
   if (hits.length > 0) {
     const entry = findClickable(hits[0].object);
     if (entry) showPanel(entry.data);
@@ -1324,9 +1127,11 @@ function flyTo(viewName) {
   const v = VIEWS[viewName];
   if (!v) return;
 
+  setViewObjects(viewName);
+
   controls.enabled = false;
-  transActive   = true;
-  transStart    = performance.now();
+  transActive      = true;
+  transStart       = performance.now();
   transFrom.copy(camera.position);
   transTo.copy(v.pos);
   transLookFrom.copy(controls.target);
@@ -1337,14 +1142,14 @@ function updateTransition(now) {
   if (!transActive) return;
   const elapsed = now - transStart;
   const t = Math.min(elapsed / transDur, 1);
-  const e = 1 - Math.pow(1 - t, 3); // ease-out cubic
+  const e = 1 - Math.pow(1-t, 3);
 
   camera.position.lerpVectors(transFrom, transTo, e);
   controls.target.lerpVectors(transLookFrom, transLookTo, e);
   camera.lookAt(controls.target);
 
   if (t >= 1) {
-    transActive = false;
+    transActive      = false;
     controls.enabled = true;
   }
 }
@@ -1360,20 +1165,13 @@ function startTour() {
 }
 
 function doTourStop() {
-  if (!tourActive || tourIdx >= TOUR_STOPS.length) {
-    stopTour();
-    return;
-  }
+  if (!tourActive || tourIdx >= TOUR_STOPS.length) { stopTour(); return; }
   const stop = TOUR_STOPS[tourIdx];
   flyTo(stop.view);
   document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
   const btn = document.querySelector(`.nb[data-view="${stop.view}"]`);
   if (btn) btn.classList.add('active');
-
-  tourTimer = setTimeout(() => {
-    tourIdx++;
-    doTourStop();
-  }, stop.wait + transDur);
+  tourTimer = setTimeout(() => { tourIdx++; doTourStop(); }, stop.wait + transDur);
 }
 
 function stopTour() {
@@ -1385,7 +1183,6 @@ function stopTour() {
 // UI SETUP
 // ═══════════════════════════════════════════════════════════════
 function setupUI() {
-  // Nav buttons
   document.querySelectorAll('.nb').forEach(btn => {
     btn.addEventListener('click', () => {
       stopTour();
@@ -1395,13 +1192,10 @@ function setupUI() {
     });
   });
 
-  // Tour
   document.getElementById('btn-tour').addEventListener('click', () => {
-    if (tourActive) { stopTour(); }
-    else            { startTour(); }
+    tourActive ? stopTour() : startTour();
   });
 
-  // Reset
   document.getElementById('btn-reset').addEventListener('click', () => {
     stopTour();
     flyTo('cosmos');
@@ -1409,41 +1203,33 @@ function setupUI() {
     document.querySelector('.nb[data-view="cosmos"]').classList.add('active');
   });
 
-  // Panel close
   document.getElementById('panel-close').addEventListener('click', hidePanel);
 
-  // Hide hint after 6s
-  setTimeout(() => {
-    document.getElementById('hint').classList.add('gone');
-  }, 6000);
+  setTimeout(() => { document.getElementById('hint').classList.add('gone'); }, 6000);
 }
 
 // ═══════════════════════════════════════════════════════════════
-// LOADING SIMULATION
+// LOADING
 // ═══════════════════════════════════════════════════════════════
 function simulateLoading(done) {
   const bar  = document.getElementById('load-bar');
   const text = document.getElementById('load-text');
   const msgs = [
     'Awakening Para Brahman…',
-    'Weaving the cosmic nebula…',
+    'Weaving the starfield…',
     'Summoning the Trimurti…',
     'Arranging the 14 Lokas…',
     'Coiling Ananta Shesha…',
-    'Releasing the Jiva souls…',
     'Spinning the Kalachakra…',
     'Universe ready.'
   ];
   let pct = 0, mi = 0;
   const iv = setInterval(() => {
-    pct = Math.min(pct + (3 + Math.random() * 6), 100);
+    pct = Math.min(pct + (3 + Math.random() * 7), 100);
     bar.style.width = pct + '%';
-    const idx = Math.floor((pct / 100) * msgs.length);
-    text.textContent = msgs[Math.min(idx, msgs.length - 1)];
-    if (pct >= 100) {
-      clearInterval(iv);
-      setTimeout(done, 400);
-    }
+    const idx = Math.floor((pct/100) * msgs.length);
+    text.textContent = msgs[Math.min(idx, msgs.length-1)];
+    if (pct >= 100) { clearInterval(iv); setTimeout(done, 400); }
   }, 120);
 }
 
@@ -1452,14 +1238,10 @@ function simulateLoading(done) {
 // ═══════════════════════════════════════════════════════════════
 function animate() {
   requestAnimationFrame(animate);
-
-  uTime += 0.008;
+  uTime += 0.007;
   const now = performance.now();
-
   updateTransition(now);
   controls.update();
-
   animatables.forEach(fn => fn(uTime));
-
   composer.render();
 }
