@@ -1,102 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sanatan Cosmos - 3D Divine Hierarchy</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="alternate icon" href="favicon.svg">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRAHMANDA — The Cosmic Egg · Sanatan Cosmology</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
-    <div id="loading-screen">
-        <div class="loader">
-            <div class="om-symbol">ॐ</div>
-            <p>Loading Cosmic Realms...</p>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
-            </div>
-        </div>
+
+  <!-- ░░ LOADING SCREEN ░░ -->
+  <div id="loading">
+    <div class="load-inner">
+      <div class="load-om">ॐ</div>
+      <div class="load-title">BRAHMANDA</div>
+      <div class="load-sub">The Cosmic Egg &nbsp;·&nbsp; ब्रह्माण्ड</div>
+      <div class="load-bar-wrap"><div id="load-bar"></div></div>
+      <div id="load-text">Awakening the Cosmos…</div>
+    </div>
+  </div>
+
+  <!-- ░░ 3D CANVAS ░░ -->
+  <canvas id="c"></canvas>
+
+  <!-- ░░ HEADER ░░ -->
+  <header id="hdr">
+    <div class="hdr-brand">
+      <span class="hdr-om">ॐ</span>
+      <div>
+        <div class="hdr-title">BRAHMANDA</div>
+        <div class="hdr-sub">Sanatan Cosmology</div>
+      </div>
     </div>
 
-    <!-- Centered Brand Header -->
-    <header class="brand-header">
-        <div class="brand-content">
-            <span class="om">ॐ</span>
-            <span class="title">SANATAN COSMOS</span>
-        </div>
-    </header>
+    <nav id="nav">
+      <button class="nb active" data-view="cosmos">Universe</button>
+      <button class="nb" data-view="trimurti">Trimurti</button>
+      <button class="nb" data-view="lokas">14 Lokas</button>
+      <button class="nb" data-view="chakras">Chakras</button>
+      <button class="nb" data-view="yugas">Kalachakra</button>
+    </nav>
 
-    <!-- Main 3D Canvas - Full Screen -->
-    <div id="canvas-container"></div>
-    
-    <!-- Floating Circular Control Panel -->
-    <div class="control-orb">
-        <button class="orb-toggle" id="orb-toggle" aria-label="Toggle controls">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <circle cx="12" cy="12" r="3"/>
-            </svg>
-        </button>
-        
-        <div class="control-ring" id="control-ring">
-            <button class="control-btn" data-action="reset" title="Reset View">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                    <path d="M21 3v5h-5"/>
-                </svg>
-            </button>
-            
-            <button class="control-btn" data-action="auto-rotate" title="Auto Rotate">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-                </svg>
-            </button>
-            
-            <button class="control-btn" data-action="expand" title="Expand All">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                </svg>
-            </button>
-            
-            <button class="control-btn toggle-btn active" data-action="toggle-yugas" title="Yugas">Y</button>
-            <button class="control-btn toggle-btn active" data-action="toggle-lokas" title="Lokas">L</button>
-            <button class="control-btn toggle-btn active" data-action="toggle-avatars" title="Avatars">A</button>
-            <button class="control-btn toggle-btn active" data-action="toggle-paths" title="Paths">P</button>
-            
-            <button class="control-btn" data-action="help" title="Help">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                    <line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-            </button>
-        </div>
+    <div class="hdr-actions">
+      <button id="btn-tour" class="act-btn">&#9654; Tour</button>
+      <button id="btn-reset" class="act-btn">&#x21BA; Reset</button>
     </div>
-    
-    <!-- Tooltip -->
-    <div class="tooltip" id="tooltip"></div>
+  </header>
 
-    <!-- Detail Panel -->
-    <div class="detail-panel" id="detail-panel">
-        <button class="close-btn" id="close-detail">×</button>
-        <div class="detail-content">
-            <h2 id="detail-title"></h2>
-            <div id="detail-body"></div>
-        </div>
-    </div>
+  <!-- ░░ INFO SIDE-PANEL ░░ -->
+  <aside id="panel">
+    <button id="panel-close">&#x2715;</button>
+    <div id="panel-cat"></div>
+    <h2 id="panel-title"></h2>
+    <div id="panel-sk"></div>
+    <div class="panel-rule"></div>
+    <div id="panel-body"></div>
+  </aside>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="audio-manager.js"></script>
-    <script src="advanced-effects.js"></script>
-    <script src="deity-models.js"></script>
-    <script src="script.js"></script>
+  <!-- ░░ HOVER TOOLTIP ░░ -->
+  <div id="tip"></div>
 
+  <!-- ░░ CONTROLS HINT ░░ -->
+  <div id="hint">Drag &middot; Scroll &middot; Click objects to explore the cosmos</div>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>
